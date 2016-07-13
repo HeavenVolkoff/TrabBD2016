@@ -5,7 +5,7 @@ Trabalho de Banco de Dados 2016.1
 
 ###Integrantes:
 | Aluno                              | DRE       |
-|: --------------------------------- |: ------- :|
+|:----------------------------------:|:---------:|
 | Vítor Augusto da Silva Vasconcellos| 114025039 |
 | Raphael de Carvalho Almeida        | 114063859 |
 | Thales de Freitas Magalhães        | --------- |
