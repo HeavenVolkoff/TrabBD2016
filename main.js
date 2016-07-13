@@ -5,19 +5,19 @@
 'use strict'
 
 // Internal configuration
-const configuration = require('./configuration.json')
+const configuration = Object.assign(require('./configuration.json'), require('./localConfiguration.json'))
 // Configure Debug Logs
 process.env.DEBUG = configuration.debug
 
-// ===== Node packages =====
+// === Node packages ===
 const path = require('path')
 
-// ===== NPM external packages =====
+// === NPM external packages ===
 const debug = require('debug')
 const mysql = require('mysql2/promise')
 const Promise = require('bluebird')
 
-// ===== Internal packages =====
+// === Internal packages ===
 const getListeners = require('./listeners')
 const createSocketIO = require('./util/createSoketIO')
 const createLocalServer = require('./util/createLocalServer')
@@ -47,7 +47,19 @@ const server = createLocalServer(
 // Create Socket.io instance inside previously created server
 const io = createSocketIO(server, getListeners(dbPool))
 
-// ===== Internal Listeners =====
+// === Internal Listeners ===
 server.on('listening', () => {
   log('Server initialized...')
+})
+
+server.on('error', () => {
+  // TODO
+})
+
+io.on('message', () => {
+  // TODO
+})
+
+io.on('destroy', () => {
+  // TODO
 })

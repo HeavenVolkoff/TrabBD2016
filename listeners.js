@@ -1,9 +1,9 @@
 'use strict'
 
-// ===== Node packages =====
+// === Node packages ===
 const path = require('path')
 
-// ===== NPM external packages =====
+// === NPM external packages ===
 const debug = require('debug')
 
 // This file path information
@@ -21,7 +21,7 @@ module.exports = (dbPool) => {
     unidadesSaude: (socket, maxId) => {
       log(`Requisição para unidades de saude com id < ${maxId}`)
       dbPool.getConnection().then((conn) => {
-        const res = conn.execute('SELECT * FROM TrabalhoBD.unidades_saude WHERE id < ?', [maxId])
+        let res = conn.execute('SELECT * FROM TrabalhoBD.unidades_saude WHERE id < ?', [maxId])
         conn.release()
         return res
       }).then((rows) => {
