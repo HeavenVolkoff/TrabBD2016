@@ -33,9 +33,7 @@ log('Initializing server...')
 const dbPool = mysql.createPool(
   Object.assign(configuration.db, {
     /* Database Custom Options */
-    Promise: Promise,
-    debug: typeof configuration.debug === 'string' &&
-    (~configuration.debug.indexOf('*') || ~configuration.debug.indexOf('MySql'))
+    Promise: Promise
   })
 )
 

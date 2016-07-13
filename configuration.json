@@ -2,7 +2,7 @@
   "db": {
     "host": "localhost",
     "user": "trabalhoBDAdmin",
-    "password": "trabalhoBD2016",
+    "password": "trabalhoBD2016!",
     "database": "TrabalhoBD",
     "connectionLimit ": 100
   },

@@ -18,8 +18,17 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
  */
 module.exports = (dbPool) => {
   return {
-    hello: (name) => {
-      log(`Hello: ${name}`)
+    unidadesSaude: (socket, maxId) => {
+      log(`Requisição para unidades de saude com id < ${maxId}`)
+      dbPool.getConnection().then((conn) => {
+        const res = conn.execute('SELECT * FROM TrabalhoBD.unidades_saude WHERE id < ?', [maxId])
+        conn.release()
+        return res
+      }).then((rows) => {
+        socket.emit('unidadesSaudeAnswer', rows)
+      }).catch((err) => {
+        log(err)
+      })
     }
   }
 }
