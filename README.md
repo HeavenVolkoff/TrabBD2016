@@ -13,7 +13,7 @@ Trabalho de Banco de Dados 2016.1
 > Devido a limitações de espaço do Github todos os arquivos relacionados ao BD se encontram em uma pasta do Google Drive
 
 [Arquivos do Banco de Dados][Google Dive BD Folder]
-+ Faça download do arquivo (Exported > NewBDs.sql) no link acima
++ Faça download do arquivo `DataBase > Exported > NewBDs.sql` no link acima
 + Cria uma Schema com o nome `TrabalhoBD` e Collation `utf8`
 + Execute o arquivo previamente salvo na Schema criada no passo anterior 
 
