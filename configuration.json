@@ -1,0 +1,13 @@
+{
+  "db": {
+    "host": "localhost",
+    "user": "trabalhoBDAdmin",
+    "password": "trabalhoBD2016",
+    "database": "TrabalhoBD",
+    "connectionLimit ": 100
+  },
+  "server": {
+    "root": "./public"
+  },
+  "debug": "*"
+}
