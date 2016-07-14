@@ -5,7 +5,7 @@
 'use strict'
 
 // Internal configuration
-const configuration = Object.assign(require('./configuration.json'), require('./localConfiguration.json'))
+const configuration = require('./util/deepAssign')(require('./configuration.json'), require('./localConfiguration.json'))
 // Configure Debug Logs
 process.env.DEBUG = configuration.debug
 

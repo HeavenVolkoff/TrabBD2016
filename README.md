@@ -1,9 +1,15 @@
-[Google Dive BD Folder]: https://drive.google.com/folderview?id=0BygRea4d-xCdeF9zTkFxVXMza2s&usp=sharing
+[Google Drive BD Folder]: https://drive.google.com/folderview?id=0BygRea4d-xCdeF9zTkFxVXMza2s&usp=sharing
+[node-sql2]: https://github.com/sidorares/node-mysql2
+[socket.io]: http://socket.io
+[bluebird]: https://github.com/petkaantonov/bluebird
+[connect]: https://github.com/senchalabs/connect
+[debug]: https://github.com/visionmedia/debug
+[serve-static]: https://github.com/expressjs/serve-static
 
 # TrabBD2016
 Trabalho de Banco de Dados 2016.1
 
-###Integrantes:
+### Integrantes:
 | Aluno                              | DRE       |
 |:----------------------------------:|:---------:|
 | Vítor Augusto da Silva Vasconcellos| 114025039 |
@@ -20,7 +26,7 @@ Trabalho de Banco de Dados 2016.1
 ### Banco de Dados:
 > Devido a limitações de espaço do Github todos os arquivos relacionados ao BD se encontram em uma pasta do Google Drive
 
-[Arquivos do Banco de Dados][Google Dive BD Folder]
+[Arquivos do Banco de Dados][Google Drive BD Folder]
 + Faça download do arquivo `DataBase > Exported > NewBDs.sql` no link acima
 + Cria uma Schema com o nome `TrabalhoBD` e Collation `utf8`
 + Execute o arquivo previamente salvo na Schema criada no passo anterior 
@@ -31,7 +37,7 @@ No terminal faca `cd` na pasta raiz do projeto e execute:
 npm install
 ```
 
-## Estrututra do Projeto:
+## Estrutura do Projeto:
 ```
 |+ public
 ||=> Nessa pasta residem todos os arquivos relacionados à página web que sera disponibilizada pelo servidor Node.js
@@ -53,3 +59,15 @@ npm install
 |- listeners.js
 ||=> Script responsável pela lógica de comunicação com os clientes (Socket.IO listeners)
 ```
+
+## Dependências
++ Bibliotecas Back-End (Node.js):
+    + [bluebird][bluebird]
+    + [connect][connect]
+    + [debug][debug]
+    + [node-sql2][node-sql2]
+    + [serve-static][serve-static]
+    + [socket.io (Server)][socket.io]
+
++ Bibliotecas Front-End (Navegador):
+    + [socket.io (Client)][socket.io]

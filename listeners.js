@@ -19,16 +19,7 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
 module.exports = (dbPool) => {
   return {
     unidadesSaude: (socket, maxId) => {
-      log(`Requisição para unidades de saude com id < ${maxId}`)
-      dbPool.getConnection().then((conn) => {
-        let res = conn.execute('SELECT * FROM TrabalhoBD.unidades_saude WHERE id < ?', [maxId])
-        conn.release()
-        return res
-      }).then((rows) => {
-        socket.emit('unidadesSaudeAnswer', rows)
-      }).catch((err) => {
-        log(err)
-      })
+      // TODO
     }
   }
 }
