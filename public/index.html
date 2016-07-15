@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Hello</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>Hello</title>
 
-    <script defer type="application/javascript" src="/socket.io/socket.io.js"></script>
-    <script defer type="application/javascript" src="script/socketConnection.js"></script>
-    <script defer type="application/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxc0e8zfQbCdf2NVPHGjsuvfTA3loMmpw"></script>
-    <script defer type="application/javascript" src="script/mapsController.js"></script>
-</head>
-<body>
-    <div id="map" style="width: 100%; height: 400px;"></div>
-</body>
+        <script defer type="application/javascript" src="/socket.io/socket.io.js"></script>
+        <script defer type="application/javascript" src="script/socketConnection.js"></script>
+        <script defer type="application/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxc0e8zfQbCdf2NVPHGjsuvfTA3loMmpw"></script>
+        <script defer type="application/javascript" src="script/maps-icons/map-icons.min.js"></script>
+        <link type="text/css" rel="stylesheet" href="styles/maps-icons/map-icons.min.css">
+
+        <script defer type="application/javascript" src="script/mapsController.js"></script>
+    </head>
+    <body>
+        <div id="map" style="width: 100%; height: 400px;"></div>
+    </body>
 </html>
