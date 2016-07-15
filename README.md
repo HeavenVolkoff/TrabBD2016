@@ -1,4 +1,6 @@
-[Google Drive BD Folder]: https://drive.google.com/folderview?id=0BygRea4d-xCdeF9zTkFxVXMza2s&usp=sharing
+[Database]: ./db
+
+[Database Download]: https://github.com/HeavenVolkoff/TrabBD2016/raw/master/db/source/generated.zip
 [node-sql2]: https://github.com/sidorares/node-mysql2
 [socket.io]: http://socket.io
 [bluebird]: https://github.com/petkaantonov/bluebird
@@ -9,7 +11,7 @@
 # TrabBD2016
 Trabalho de Banco de Dados 2016.1
 
-### Integrantes:
+### Integrantes
 | Aluno                              | DRE       |
 |:----------------------------------:|:---------:|
 | Vítor Augusto da Silva Vasconcellos| 114025039 |
@@ -17,17 +19,14 @@ Trabalho de Banco de Dados 2016.1
 | Thales de Freitas Magalhães        | --------- |
 | Flávio Ribeiro Teixeira Neto       | 114023697 |
 
-## Requisitos:
+## Requisitos
 + Node.js (Versão 6.X)
 + NPM (Versão 3.X, Instalado com Node.js)
 + MySQL (Versão 5.7)
 
-## Configurações:
-### Banco de Dados:
-> Devido a limitações de espaço do Github todos os arquivos relacionados ao BD se encontram em uma pasta do Google Drive
-
-[Arquivos do Banco de Dados][Google Drive BD Folder]
-+ Faça download do arquivo `DataBase > Exported > NewBDs.sql` no link acima
+## Configurações
+### [Banco de Dados][Database]:
++ Faça download desse [script SQL][Database Download] ([mirror](#TODO))
 + Cria uma Schema com o nome `TrabalhoBD` e Collation `utf8`
 + Execute o arquivo previamente salvo na Schema criada no passo anterior 
 
@@ -37,8 +36,11 @@ No terminal faca `cd` na pasta raiz do projeto e execute:
 npm install
 ```
 
-## Estrutura do Projeto:
+## Estrutura do Projeto
 ```
+|+ db
+||=> Nesta Pasta estão os arquivos de descriminação da estrutura e scripts de criação do banco de dados
+|
 |+ public
 ||=> Nessa pasta residem todos os arquivos relacionados à página web que sera disponibilizada pelo servidor Node.js
 |    ATENÇÃO: Todos os arquivos dessa pasta estarão acessíveis ao público
