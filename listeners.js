@@ -47,5 +47,24 @@ module.exports = (dbPool) => {
         log(err)
       })
     },
+    get_state_floating_info: (socket, uf) => {
+      dbPool.getConnection().then((conn) => {
+        let query =
+          "SELECT tipos_gestao.descricao, COUNT(tipos_gestao.id) AS 'count' " +
+          "FROM tipos_gestao " +
+          "INNER JOIN unidades_saude ON unidades_saude.tipo_gestao_id = tipos_gestao.id " +
+          "INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id " +
+          "INNER JOIN ufs ON localizacoes.uf_id = ufs.id " +
+          "WHERE ufs.sigla = '?' " +
+          "GROUP BY tipos_gestao.descricao;";
+        let res = conn.execute({sql: query, rowsAsArray: true}, [uf])
+        conn.release()
+        return res
+      }).then((response) => {
+        socket.emit('get_state_floating_info_answer', [uf, response])
+      }).catch((err) => {
+        log(err)
+      })
+    }
   }
 }
