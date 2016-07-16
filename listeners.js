@@ -6,7 +6,7 @@ const path = require('path')
 // === NPM external packages ===
 const debug = require('debug')
 
-// This file path information
+// This file's path information
 const file = path.parse(__filename)
 // Internal logger
 const log = debug(`${path.basename(file.dir)}:${file.name}`)

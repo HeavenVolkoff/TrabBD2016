@@ -18,11 +18,11 @@ const mysql = require('mysql2/promise')
 const Promise = require('bluebird')
 
 // === Internal packages ===
-const getListeners = require('./listeners')
+const genListeners = require('./listeners')
 const createSocketIO = require('./util/createSoketIO')
-const createLocalServer = require('./util/createLocalServer')
+const createStaticServer = require('./util/createStaticServer')
 
-// This file path information
+// This file's path information
 const file = path.parse(__filename)
 // Internal logger
 const log = debug(`${path.basename(file.dir)}:${file.name}`)
@@ -38,14 +38,14 @@ const dbPool = mysql.createPool(
 )
 
 // Create local server instance
-const server = createLocalServer(
+const server = createStaticServer(
   Object.assign(configuration.server, {
     /* Server Custom Options */
   })
 )
 
 // Create Socket.io instance inside previously created server
-const io = createSocketIO(server, getListeners(dbPool))
+const io = createSocketIO(server, genListeners(dbPool))
 
 // === Internal Listeners ===
 server.on('listening', () => {

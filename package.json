@@ -4,7 +4,7 @@
   "description": "Trabalho de BD 2016",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "node ./util/postInstall.js"
   },
   "keywords": [
     "bd",
@@ -18,11 +18,9 @@
     "bluebird": "^3.4.1",
     "connect": "^3.4.1",
     "debug": "^2.2.0",
+    "escape-html": "^1.0.3",
     "mysql2": "^1.0.0-rc.7",
     "serve-static": "^1.11.1",
     "socket.io": "^1.4.8"
-  },
-  "scripts": {
-    "postinstall": "test ! -f ./localConfiguration.json && echo \"{\n  \\\"db\\\":{},\n  \\\"server\\\":{}\n}\n\" > ./localConfiguration.json || true"
   }
 }

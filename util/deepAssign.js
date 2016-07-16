@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * Jquery's (modified) Plain Object check
+ * Modified Jquery's Plain Object check
  *
  * @link https://github.com/jquery/jquery/blob/master/src/core.js
  * @param obj {Object}
@@ -11,7 +11,6 @@ const isPlainObject = (obj) => {
   let _prototype, _constructor
 
   // Detect obvious negatives
-  // Use toString instead of jQuery.type to catch host objects
   if (!obj || typeof obj !== 'object') {
     return false
   }

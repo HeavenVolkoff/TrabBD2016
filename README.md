@@ -24,7 +24,7 @@ Trabalho de Banco de Dados 2016.1
 + NPM (Versão 3.X, Instalado com Node.js)
 + MySQL (Versão 5.7)
 
-## Configurações
+## Configuração do Projeto
 ### [Banco de Dados][Database]:
 + Faça download desse [script SQL][Database Download] ([mirror](#TODO))
 + Cria uma Schema com o nome `TrabalhoBD` e Collation `utf8`
