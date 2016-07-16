@@ -9,5 +9,5 @@
   "server": {
     "root": "./public"
   },
-  "debug": "*"
+  "debug": "*,-socket.io-parser,-engine,-engine:*,-send"
 }
