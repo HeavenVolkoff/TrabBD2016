@@ -18,36 +18,34 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
  */
 module.exports = (dbPool) => {
   return {
-    unidadesSaudeLocalizacoes: (socket) => {
-      log(`Requisição para geo location das unidades de saude`)
+    get_ufs: (socket) => {
       dbPool.getConnection().then((conn) => {
-        let query = 'SELECT COUNT(TrabalhoBD.localizacoes.id) FROM TrabalhoBD.localizacoes';
+        let query = 'SELECT ufs.sigla FROM ufs';
         let res = conn.execute({sql: query, rowsAsArray: true}, [])
         conn.release()
         return res
       }).then((response) => {
-        dbPool.getConnection().then((conn) => {
-          let chunckSize = 100;
-          let total = response[0][0][0];
-          let queries = [];
-          for(let count = 0; count <= (total/chunckSize); count++){
-            let query = 'SELECT localizacoes.latitude, localizacoes.longitude FROM localizacoes ORDER BY id LIMIT ?,?';
-            queries.push(
-                conn.execute({sql: query, rowsAsArray: true}, [count*chunckSize,  chunckSize]).then((response) => {
-                  socket.emit('unidadesSaudeLocalizacoesAnswer', response)
-                }).catch((err) => {
-                  log(err)
-                })
-            );
-          }
-          conn.release()
-          return Promise.all(queries).catch((err) => {
-            log(err)
-          })
-        })
+        socket.emit('get_ufs_answer', response)
       }).catch((err) => {
         log(err)
       })
-    }
+    },
+    get_uf_locations_count: (socket, uf_name) => {
+      dbPool.getConnection().then((conn) => {
+        let query =
+            'SELECT ufs.sigla, count(localizacoes.id) ' +
+            'FROM localizacoes ' +
+            'INNER JOIN ufs ON localizacoes.uf_id = ufs.id ' +
+            'WHERE ufs.sigla = ? '
+        let res = conn.execute({sql: query, rowsAsArray: true}, [uf_name])
+        conn.release()
+        return res
+      }).then((response) => {
+        console.log(response)
+        socket.emit('get_uf_locations_count_answer', response)
+      }).catch((err) => {
+        log(err)
+      })
+    },
   }
 }
