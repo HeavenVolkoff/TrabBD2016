@@ -7,6 +7,7 @@
 [connect]: https://github.com/senchalabs/connect
 [debug]: https://github.com/visionmedia/debug
 [serve-static]: https://github.com/expressjs/serve-static
+[js-marker-clusterer]: https://github.com/googlemaps/js-marker-clusterer
 
 # TrabBD2016
 Trabalho de Banco de Dados 2016.1
@@ -73,3 +74,4 @@ npm install
 
 + Bibliotecas Front-End (Navegador):
     + [socket.io (Client)][socket.io]
+    + [marker clusterer][js-marker-clusterer]
