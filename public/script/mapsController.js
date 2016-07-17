@@ -11,92 +11,91 @@
   // Local variables
   var maps, stateGeoLoc, markers, icons, layer
 
-  // get icon by data size
-  function getRightIcon (value) {
+  /**
+   * Get icon by quantity
+   * @param value {number}
+   * @returns {{url: string, position: Point}}
+   */
+  function getIconInfoByQuantity (value) {
+    var iconInfo = {url: '', position: null}
+
     if (value <= 1000) {
-      return icons.l1
+      iconInfo.url = icons.l1
+      iconInfo.position = new gMap.Point(20, 30)
     } else if (value > 1000 && value <= 10000) {
-      return icons.l2
+      iconInfo.url = icons.l2
+      iconInfo.position = new gMap.Point(20, 32)
     } else if (value > 10000 && value <= 20000) {
-      return icons.l3
+      iconInfo.url = icons.l3
+      iconInfo.position = new gMap.Point(20, 37)
     } else if (value > 20000 && value <= 50000) {
-      return icons.l4
+      iconInfo.url = icons.l4
+      iconInfo.position = new gMap.Point(20, 42)
     } else {
-      return icons.l5
+      iconInfo.url = icons.l5
+      iconInfo.position = new gMap.Point(20, 48)
     }
+
+    return iconInfo
   }
 
-  // get icon pos by data size
-  function getRightLabelPos (value) {
-    if (value <= 1000) {
-      return new gMap.Point(20, 27)
-    } else if (value > 1000 && value <= 10000) {
-      return new gMap.Point(20, 32)
-    } else if (value > 10000 && value <= 20000) {
-      return new gMap.Point(20, 37)
-    } else if (value > 20000 && value <= 50000) {
-      return new gMap.Point(20, 42)
-    } else {
-      return new gMap.Point(20, 48)
-    }
-  }
-
-  // on receive locations for a given UF
+  /**
+   * Place Markers on each received state location
+   * @param data {Object}
+   * @param data.state {string}
+   * @param data.quantity {number}
+   * @returns {*}
+   */
   function placeStateMarker (data) {
-    markers.states[data[0]] = {
+    var state = data.state
+    var quantity = data.quantity
+    var icon = getIconInfoByQuantity(quantity)
+
+    markers.states[state] = {
       marker: new MarkerWithLabel({
-        position: new gMap.LatLng(stateGeoLoc[data[0]].lat, stateGeoLoc[data[0]].long),
+        position: new gMap.LatLng(stateGeoLoc[state].lat, stateGeoLoc[state].long),
         map: maps,
         draggable: false,
         raiseOnDrag: false,
-        labelContent: data[1],
-        labelAnchor: getRightLabelPos(data[1]),
+        labelContent: quantity,
+        labelAnchor: icon.position,
         labelClass: 'labels', // the CSS class for the label
         labelInBackground: false,
-        icon: getRightIcon(data[1])
+        icon: icon.url
       }),
-      count: data[1],
+      count: quantity,
       infoWindow: null
     }
-    socket.emit('get_state_floating_info', data[0])
-    return markers.states[data[0]]
-  }
 
-  // create hover info window
-  function createInfoWindow (content) {
-    return new gMap.InfoWindow({
-      content: content
-    })
+    socket.emit('get_state_floating_info', state)
   }
 
   // on additional floating info response
   socket.on('get_state_floating_info_answer', function (data) {
-    console.log(data)
     // Create info window
-    markers.states[data[0]].infoWindow = createInfoWindow(
-      '<h3>Estado: ' + data[0] + '<h3/>' +
-      '<h5>Numero de unidades de saúde: ' + markers.states[data[0]].count + '</h5>'
-    )
-    // Adiciona eventos para controle da janela de informações
-    gMap.event.addListener(markers.states[data[0]].marker, 'mouseover', function (e) {
-      markers.states[data[0]].infoWindow.open(maps, this)
+    markers.states[data.uf].infoWindow = new gMap.InfoWindow({
+      content: '<h3>Estado: ' + data.uf + '<h3/>' +
+      '<h5>Numero de unidades de saúde: ' + markers.states[data.uf].count + '</h5>'
     })
-    gMap.event.addListener(markers.states[data[0]].marker, 'mouseout', function (e) {
-      markers.states[data[0]].infoWindow.close(maps, this)
+
+    // Adiciona eventos para controle da janela de informações
+    gMap.event.addListener(markers.states[data.uf].marker, 'mouseover', function (e) {
+      markers.states[data.uf].infoWindow.open(maps, this)
+    })
+    gMap.event.addListener(markers.states[data.uf].marker, 'mouseout', function (e) {
+      markers.states[data.uf].infoWindow.close(maps, this)
     })
   })
 
   // on receive uf names
   socket.on('get_ufs_answer', function (data) {
-    data[0].forEach(function (item) {
-      socket.emit('get_uf_locations_count', item[0])
+    data.forEach(function (item) {
+      socket.emit('get_uf_locations_count', item)
     })
   })
 
   // add marker with state data
-  socket.on('get_uf_locations_count_answer', function (data) {
-    placeStateMarker(data[0][0])
-  })
+  socket.on('get_uf_locations_count_answer', placeStateMarker)
 
   // create map
   maps = new gMap.Map($.querySelector('#map'), {
