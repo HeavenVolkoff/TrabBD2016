@@ -20,7 +20,7 @@ module.exports = (dbPool) => {
   return {
     get_ufs: (socket) => {
       dbPool.getConnection().then((conn) => {
-        let query = 'SELECT ufs.sigla FROM ufs';
+        let query = 'SELECT ufs.sigla FROM ufs'
         let res = conn.execute({sql: query, rowsAsArray: true}, [])
         conn.release()
         return res
@@ -30,14 +30,17 @@ module.exports = (dbPool) => {
         log(err)
       })
     },
-    get_uf_locations_count: (socket, uf_name) => {
+    get_uf_locations_count: (socket, stateName) => {
       dbPool.getConnection().then((conn) => {
         let query =
-            'SELECT ufs.sigla, count(localizacoes.id) ' +
-            'FROM localizacoes ' +
-            'INNER JOIN ufs ON localizacoes.uf_id = ufs.id ' +
-            'WHERE ufs.sigla = ? '
-        let res = conn.execute({sql: query, rowsAsArray: true}, [uf_name])
+
+        `SELECT TrabalhoBD.ufs.sigla, count(TrabalhoBD.localizacoes.id)
+FROM TrabalhoBD.localizacoes
+  INNER JOIN TrabalhoBD.ufs ON TrabalhoBD.localizacoes.uf_id = TrabalhoBD.ufs.id
+WHERE TrabalhoBD.ufs.sigla = ?
+GROUP BY TrabalhoBD.ufs.sigla;`
+
+        let res = conn.execute({sql: query, rowsAsArray: true}, [stateName])
         conn.release()
         return res
       }).then((response) => {
@@ -50,13 +53,15 @@ module.exports = (dbPool) => {
     get_state_floating_info: (socket, uf) => {
       dbPool.getConnection().then((conn) => {
         let query =
-          "SELECT tipos_gestao.descricao, COUNT(tipos_gestao.id) AS 'count' " +
-          "FROM tipos_gestao " +
-          "INNER JOIN unidades_saude ON unidades_saude.tipo_gestao_id = tipos_gestao.id " +
-          "INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id " +
-          "INNER JOIN ufs ON localizacoes.uf_id = ufs.id " +
-          "WHERE ufs.sigla = '?' " +
-          "GROUP BY tipos_gestao.descricao;";
+
+        `SELECT tipos_gestao.descricao, COUNT(tipos_gestao.id) AS 'count'
+FROM tipos_gestao 
+INNER JOIN unidades_saude ON unidades_saude.tipo_gestao_id = tipos_gestao.id 
+INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id 
+INNER JOIN ufs ON localizacoes.uf_id = ufs.id 
+WHERE ufs.sigla = '?' 
+GROUP BY tipos_gestao.descricao;`
+
         let res = conn.execute({sql: query, rowsAsArray: true}, [uf])
         conn.release()
         return res

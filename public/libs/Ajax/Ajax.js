@@ -221,7 +221,7 @@
     options = parseOptions(opts)
 
     // Internal Promise object
-    self._promise = new Promise(function (rslv, rjct) {
+    self._promise = new Promise(function (rslv, rjct) { // eslint-disable-line
       resolve = function resolvePromise (result) {
         rslv(result)
         resolve = settledPromise
@@ -366,7 +366,7 @@
   Ajax.post = function ajaxPost (url, data, timeout) {
     data = data === undefined ? null : data
     return new Ajax({url: url, timeout: timeout, method: 'POST'}, data)
-  }// TODO: Comment static properties functions
+  } // TODO: Comment static properties functions
 
   // Return frozen class
   return Object.freeze(Ajax)

@@ -1,4 +1,4 @@
-(function (window) {
+;(function (window) {
   'use strict'
 
   var socket = window.io.connect('127.0.0.1')
