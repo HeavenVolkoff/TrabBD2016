@@ -44,11 +44,11 @@
 
   /**
    * Hide marker array from the map
-   * @param markerList {MarkerWithLabel[]}
+   * @param markerList {Array}
    */
   function hideMarkers(markerList){
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(null);
+      markerList[i].marker.setMap(null);
     }
   }
 
@@ -58,18 +58,18 @@
   function hideAllStatesMarkers(){
     for (var stateName in markers.states) {
       if (markers.states.hasOwnProperty(stateName)) {
-        hideMarkers(markers.states[stateName]);
+        hideMarkers([markers.states[stateName]]);
       }
     }
   }
 
   /**
    * Show marker array in the map
-   * @param markerList {MarkerWithLabel[]}
+   * @param markerList {Array}
    */
   function showMarkers(markerList){
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(maps);
+      markerList[i].marker.setMap(maps);
     }
   }
 
@@ -79,7 +79,7 @@
   function showAllStatesMarkers(){
     for (var stateName in markers.states) {
       if (markers.states.hasOwnProperty(stateName)) {
-        showMarkers(markers.states[stateName]);
+        showMarkers([markers.states[stateName]]);
       }
     }
   }
