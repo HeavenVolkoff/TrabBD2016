@@ -9,5 +9,6 @@
   "server": {
     "root": "./public"
   },
+  "queriesFile": "./queries.sql",
   "debug": "*,-socket.io-parser,-engine,-engine:*,-send"
 }

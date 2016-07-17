@@ -18,6 +18,7 @@ const mysql = require('mysql2/promise')
 const Promise = require('bluebird')
 
 // === Internal packages ===
+const sqlParser = require('./util/sqlParser')
 const genListeners = require('./listeners')
 const createSocketIO = require('./util/createSoketIO')
 const createStaticServer = require('./util/createStaticServer')
@@ -45,7 +46,7 @@ const server = createStaticServer(
 )
 
 // Create Socket.io instance inside previously created server
-const io = createSocketIO(server, genListeners(dbPool))
+const io = createSocketIO(server, genListeners(dbPool, sqlParser(configuration.queriesFile)))
 
 // === Internal Listeners ===
 server.on('listening', () => {

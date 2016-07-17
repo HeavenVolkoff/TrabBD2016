@@ -3,16 +3,15 @@
 
   // === Globals ===
   var $ = document
-  var gMap = window.google.maps
+  var gMap = window.google.maps // Will be initialized later
   var Ajax = window.Ajax
+  var format = window.formatString
   var socket = window.socketConnection
   var MarkerWithLabel = window.MarkerWithLabel
-  var geocoder = new google.maps.Geocoder();
-  var maxZoom = 6;
-  var minZoom = 3;
+  var GeoLocationMarker = window.GeolocationMarker
 
   // Local variables
-  var maps, stateGeoLoc, markers, icons, layer, GeoMarker, stateBounds
+  var maps, stateGeoLoc, states, healthUnits, icons, layer, geoMarker, geoCoder, zoomControl
 
   /**
    * Get icon by quantity
@@ -46,9 +45,9 @@
    * Hide marker array from the map
    * @param markerList {MarkerWithLabel[]}
    */
-  function hideMarkers(markerList){
+  function hideMarkers (markerList) {
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(null);
+      markerList[i].setMap(null)
     }
   }
 
@@ -56,9 +55,9 @@
    * Show marker array in the map
    * @param markerList {MarkerWithLabel[]}
    */
-  function showMarkers(markerList){
+  function showMarkers (markerList) {
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(maps);
+      markerList[i].setMap(maps)
     }
   }
 
@@ -66,19 +65,18 @@
    * Activate state mode view
    * @param state {string}
    */
-  function prepareStateMap(state){
-    //hideMarkers(markers.states);
-    if(markers.healthUnits.hasOwnProperty(state)){
-      showMarkers(markers.healthUnits[state])
-    }else{
-      socket.emit('get_state_health_units');
-      maxZoom = 10;
-      geocoder.geocode( { 'address': 'brasil'+state}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          maps.setCenter(results[0].geometry.location);
-          maps.fitBounds(results[0].geometry.viewport);
+  function prepareStateMap (state) {
+    // hideMarkers(states)
+    if (healthUnits.hasOwnProperty(state)) {
+      showMarkers(healthUnits[state])
+    } else {
+      zoomControl.max = 10
+      geoCoder.geocode({'address': 'brasil' + state}, function (results, status) {
+        if (status === gMap.GeocoderStatus.OK) {
+          maps.setCenter(results[0].geometry.location)
+          maps.fitBounds(results[0].geometry.viewport)
         }
-      });
+      })
     }
   }
 
@@ -87,139 +85,161 @@
    * @param data {Object}
    * @param data.state {string}
    * @param data.quantity {number}
-   * @returns {*}
    */
-  function placeStateMarker (data) {
-    var state = data.state
-    var quantity = data.quantity
-    var icon = getIconInfoByQuantity(quantity)
+  function placeStateMarker (stateName, quantity, icon) {
+    var stateMarker = new MarkerWithLabel({
+      position: new gMap.LatLng(stateGeoLoc[stateName].lat, stateGeoLoc[stateName].long),
+      map: maps,
+      draggable: false,
+      raiseOnDrag: false,
+      labelContent: quantity,
+      labelAnchor: icon.position,
+      labelClass: 'labels', // the CSS class for the label
+      labelInBackground: false,
+      icon: icon.url
+    })
 
-    markers.states[state] = {
-      marker: new MarkerWithLabel({
-        position: new gMap.LatLng(stateGeoLoc[state].lat, stateGeoLoc[state].long),
-        map: maps,
-        draggable: false,
-        raiseOnDrag: false,
-        labelContent: quantity,
-        labelAnchor: icon.position,
-        labelClass: 'labels', // the CSS class for the label
-        labelInBackground: false,
-        icon: icon.url
-      }),
-      count: quantity,
+    states[stateName] = {
+      marker: stateMarker,
+      quantity: quantity,
       infoWindow: null
     }
 
     // Adiciona eventos para controle do click em cada estado
-    gMap.event.addListener(markers.states[state].marker, 'click', function (e) {
-      prepareStateMap(state);
+    gMap.event.addListener(stateMarker, 'click', function () {
+      prepareStateMap(stateName)
     })
-
-    socket.emit('get_state_floating_info', state)
   }
 
-  // on additional floating info response
-  socket.on('get_state_floating_info_answer', function (data) {
-    var uf = data.uf;
-    var rows = data.rows;
+  function placeMarkerFloatingBubble (uf, healthUnitInfoArray) {
+    var typeInfo = ''
+    var state = states[uf]
+    var sum = 0
 
-    //create type info string
-    var typeInfo = ""
-    var sum = 0;
-    rows.forEach(function (item) {
-      typeInfo += '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde '+item.descricao+': ' + ((item.count/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
-      sum += item.count;
+    healthUnitInfoArray.forEach(function (healthUnitInfo) {
+      typeInfo += format(
+        '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde {0}: {1}%</h5>',
+        healthUnitInfo.type,
+        ((healthUnitInfo.quantity / state.quantity) * 100).toFixed(2)
+      )
+
+      sum += healthUnitInfo.quantity
     })
-    if(markers.states[uf].count - sum != 0){
-      typeInfo += '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde Tipo Desconhecido: ' + (((markers.states[uf].count - sum)/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
+
+    if (state.quantity - sum !== 0) {
+      typeInfo += format(
+        '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde Tipo Desconhecido: {0}%</h5>',
+        (((state.quantity - sum) / state.quantity) * 100).toFixed(2)
+      )
     }
 
     // Create info window
-    markers.states[uf].infoWindow = new gMap.InfoWindow({
-      content: '<h3>Estado: ' + uf + '<h3/>' +
-      '<h5 style="margin: 0 auto; line-height: 1.25em;">Numero de unidades de saúde: ' + markers.states[uf].count + '</h5>'+
-      typeInfo
+    state.infoWindow = new gMap.InfoWindow({
+      content: format(
+        '<h3>Estado: {0}<h3/>' +
+        '<h5 style="margin: 0 auto; line-height: 1.25em;">Numero de unidades de saúde: {1}</h5>' +
+        '{2}',
+        uf, state.quantity, typeInfo
+      )
     })
 
     // Adiciona eventos para controle da janela de informações
-    gMap.event.addListener(markers.states[uf].marker, 'mouseover', function (e) {
-      markers.states[uf].infoWindow.open(maps, this)
+    gMap.event.addListener(state.marker, 'mouseover', function (e) {
+      state.infoWindow.open(maps, this)
     })
-    gMap.event.addListener(markers.states[uf].marker, 'mouseout', function (e) {
-      markers.states[uf].infoWindow.close(maps, this)
+    gMap.event.addListener(state.marker, 'mouseout', function (e) {
+      state.infoWindow.close(maps, this)
     })
-  })
-
-  // on receive uf names
-  socket.on('get_ufs_answer', function (data) {
-    data.forEach(function (item) {
-      socket.emit('get_uf_locations_count', item)
-    })
-  })
-
-  // add marker with state data
-  socket.on('get_uf_locations_count_answer', placeStateMarker)
-
-  // create map
-  maps = new gMap.Map($.querySelector('#map'), {
-    center: {lat: -14.433247, lng: -54.3050727},
-    zoom: 4,
-    disableDefaultUI: true,
-    zoomControl: true,
-    scaleControl: true,
-    rotateControl: true,
-  })
-
-  GeoMarker = new GeolocationMarker(maps);
-
-  // data
-  markers = {
-    states: {},
-    healthUnits: {}
   }
 
-  // icons
-  icons = {
-    l1: 'libs/maps/markerwithlabel/images/m1.png',
-    l2: 'libs/maps/markerwithlabel/images/m2.png',
-    l3: 'libs/maps/markerwithlabel/images/m3.png',
-    l4: 'libs/maps/markerwithlabel/images/m4.png',
-    l5: 'libs/maps/markerwithlabel/images/m5.png'
-  }
-
-  // highlight Brasil
-  layer = new gMap.FusionTablesLayer({
-    query: {
-      select: 'geometry',
-      from: '1N2LBk4JHwWpOY4d9fobIn27lfnZ5MDy-NoqqRpk',
-      where: "ISO_2DIGIT IN ('BR')"
-    },
-    styles: [
-      {
-        polygonOptions: {
-          strokeColor: '#FF0000',
-          fillOpacity: '0'
-        }
-      }
-    ]
-  })
-  layer.setMap(maps)
-
-  // Get states geographic location
-  new Ajax({url: 'data/stateGeoLocations.json', responseType: 'json'}, true).then(function (data) {
-    stateGeoLoc = data.response
-
-    // request locations
-    socket.emit('get_ufs')
-  }).catch(function (err) {
-    console.log(err)
-  })
-
-  google.maps.event.addListener(maps, 'zoom_changed', function() {
-    if (maps.getZoom() > maxZoom) {
-      maps.setZoom(maxZoom)
-    } else if(maps.getZoom() < minZoom){
-      maps.setZoom(minZoom)
+  ;(function setUp () {
+    // Cache Map's minimum and maximum permitted zoom level
+    zoomControl = {
+      max: 6,
+      min: 3
     }
-  });
+
+    // States info cache
+    states = {}
+
+    // Health units info cache
+    healthUnits = {}
+
+    // Icons Cache
+    icons = {
+      l1: '/image/mapMarkerIcons/m1.png',
+      l2: '/image/mapMarkerIcons/m2.png',
+      l3: '/image/mapMarkerIcons/m3.png',
+      l4: '/image/mapMarkerIcons/m4.png',
+      l5: '/image/mapMarkerIcons/m5.png'
+    }
+
+    // Brasil's Highlight Layer
+    layer = new gMap.FusionTablesLayer({
+      query: {
+        select: 'geometry',
+        from: '1N2LBk4JHwWpOY4d9fobIn27lfnZ5MDy-NoqqRpk',
+        where: "ISO_2DIGIT IN ('BR')"
+      },
+      styles: [
+        {
+          polygonOptions: {
+            strokeColor: '#FF0000',
+            fillOpacity: '0'
+          }
+        }
+      ]
+    })
+
+    // Initialize Map
+    maps = new gMap.Map($.querySelector('#map'), {
+      center: {lat: -14.433247, lng: -54.3050727},
+      zoom: 4,
+      disableDefaultUI: true,
+      zoomControl: true,
+      scaleControl: true,
+      rotateControl: true
+    })
+
+    // Control map zoom level
+    gMap.event.addListener(maps, 'zoom_changed', function () {
+      if (maps.getZoom() > zoomControl.max) {
+        maps.setZoom(zoomControl.max)
+      } else if (maps.getZoom() < zoomControl.min) {
+        maps.setZoom(zoomControl.min)
+      }
+    })
+
+    // === Initialize Map Extras ===
+    geoCoder = new gMap.Geocoder(maps)
+    geoMarker = new GeoLocationMarker(maps)
+    layer.setMap(maps)
+
+    // === Socket.IO Listeners ===
+    socket.on('countHealthUnitPerType_answer', function countHealthUnitPerTypeListener (data) {
+      placeMarkerFloatingBubble(data.uf, data.rows)
+    })
+    socket.on('getStates_answer', function getStatesListener (data) {
+      data.forEach(function (item) {
+        socket.emit('countLocalizationsPerState', item)
+      })
+    })
+    socket.on('countLocalizationsPerState_answer', function countLocalizationsPerStateListener (data) {
+      placeStateMarker(data.state, data.quantity, getIconInfoByQuantity(data.quantity))
+      socket.emit('countHealthUnitPerType', data.state)
+    })
+
+    // Get states geographic location
+    new Ajax({url: 'data/stateGeoLocations.json', responseType: 'json'}, true)
+      .then(function (data) {
+        stateGeoLoc = data.response
+
+        // request locations
+        socket.emit('getStates')
+      })
+      .catch(function (err) {
+        // TODO: Display Server 500 Error
+        console.log(err)
+      })
+  })()
 })(typeof window === 'object' ? window : this)

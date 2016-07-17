@@ -4,16 +4,41 @@
         <meta charset="UTF-8">
         <title>Hello</title>
 
-        <link rel="stylesheet" type="text/css" href="libs/maps/markerwithlabel/markerwithlabel.css">
+        <link rel="stylesheet" type="text/css" href="script/libs/markerwithlabel/markerwithlabel.css">
 
-        <script defer type="application/javascript" src="libs/ajax/Ajax.js"></script>
-        <script defer type="application/javascript" src="/socket.io/socket.io.js"></script>
-        <script defer type="application/javascript" src="script/socketConnection.js"></script>
-        <script defer type="application/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCxc0e8zfQbCdf2NVPHGjsuvfTA3loMmpw"></script>
-        <script defer type="application/javascript" src="libs/maps/markerwithlabel/markerwithlabel.js"></script>
-        <script defer type="application/javascript" src="libs/maps/geoLocation/geolocation-marker.js"></script>
+        <!--Sync Libraries-->
+        <script type="application/javascript" src="script/objectPropertyChange.js"></script>
 
-        <script defer type="application/javascript" src="script/mapsController.js"></script>
+        <!-- GoogleMaps Parameters -->
+        <script>
+            function createScriptTag(src){
+                var script = document.createElement('script')
+                script.setAttribute('type', 'application/javascript')
+                script.setAttribute('src', src)
+
+                return script
+            }
+
+            window.objectPropertyChange(window, 'GoogleMapsLoader', function(GoogleMapsLoader){
+                GoogleMapsLoader.KEY = 'AIzaSyCxc0e8zfQbCdf2NVPHGjsuvfTA3loMmpw'
+                GoogleMapsLoader.LANGUAGE = 'pt-br'
+                GoogleMapsLoader.REGION = 'BR';
+
+                GoogleMapsLoader.load(function(){
+                    // All the scripts that require google maps should load here
+                    document.body.appendChild(createScriptTag("node_modules/geolocation-marker/geolocation-marker.js"))
+                    document.body.appendChild(createScriptTag("script/libs/markerwithlabel/markerwithlabel.js"))
+                    document.body.appendChild(createScriptTag("script/mapsController.js"))
+                })
+            })
+        </script>
+
+        <!--Socket.IO Parameters-->
+        <script>
+            window.objectPropertyChange(window, 'io', function(io){
+                window.socketConnection = io.connect('127.0.0.1')
+            })
+        </script>
 
         <style>
             html, body{
@@ -32,5 +57,11 @@
     </head>
     <body>
         <div id="map"></div>
+
+        <!--Libraries-->
+        <script defer type="application/javascript" src="script/Ajax.js"></script>
+        <script defer type="application/javascript" src="script/formatString.js"></script>
+        <script defer type="application/javascript" src="socket.io/socket.io.js"></script>
+        <script defer type="application/javascript" src="node_modules/google-maps/lib/Google.min.js"></script>
     </body>
 </html>
