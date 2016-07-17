@@ -53,6 +53,17 @@
   }
 
   /**
+   * Hide markers of all states
+   */
+  function hideAllStatesMarkers(){
+    for (var stateName in markers.states) {
+      if (markers.states.hasOwnProperty(stateName)) {
+        hideMarkers(markers.states[stateName]);
+      }
+    }
+  }
+
+  /**
    * Show marker array in the map
    * @param markerList {MarkerWithLabel[]}
    */
@@ -63,23 +74,34 @@
   }
 
   /**
+   * Show markers of all states
+   */
+  function showAllStatesMarkers(){
+    for (var stateName in markers.states) {
+      if (markers.states.hasOwnProperty(stateName)) {
+        showMarkers(markers.states[stateName]);
+      }
+    }
+  }
+
+  /**
    * Activate state mode view
    * @param state {string}
    */
   function prepareStateMap(state){
-    //hideMarkers(markers.states);
+    hideAllStatesMarkers();
     if(markers.healthUnits.hasOwnProperty(state)){
       showMarkers(markers.healthUnits[state])
     }else{
-      socket.emit('get_state_health_units');
-      maxZoom = 10;
-      geocoder.geocode( { 'address': 'brasil'+state}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          maps.setCenter(results[0].geometry.location);
-          maps.fitBounds(results[0].geometry.viewport);
-        }
-      });
+      socket.emit('get_state_health_units_pos', state);
     }
+    maxZoom = 10;
+    geocoder.geocode( { 'address': 'brasil'+state}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        maps.setCenter(results[0].geometry.location);
+        maps.fitBounds(results[0].geometry.viewport);
+      }
+    });
   }
 
   /**
@@ -116,6 +138,43 @@
     })
 
     socket.emit('get_state_floating_info', state)
+  }
+
+  /**
+   * Place Markers on each received state location
+   * @param data {Object}
+   * @param data.state {string}
+   * @param data.quantity {number}
+   * @returns {*}
+   */
+  function placeInnerStateMarker (data) {
+    console.log(data)
+    // var state = data.state
+    // var quantity = data.quantity
+    // var icon = getIconInfoByQuantity(quantity) //getIconInfoByType
+    //
+    // markers.healthUnits[state] = {
+    //   marker: new MarkerWithLabel({
+    //     position: new gMap.LatLng(stateGeoLoc[state].lat, stateGeoLoc[state].long),
+    //     map: maps,
+    //     draggable: false,
+    //     raiseOnDrag: false,
+    //     labelContent: quantity,
+    //     labelAnchor: icon.position,
+    //     labelClass: 'labels', // the CSS class for the label
+    //     labelInBackground: false,
+    //     icon: icon.url
+    //   }),
+    //   count: quantity,
+    //   infoWindow: null
+    // }
+    //
+    // // Adiciona eventos para controle do click em cada estado
+    // gMap.event.addListener(markers.states[state].marker, 'click', function (e) {
+    //   prepareStateMap(state);
+    // })
+    //
+    // socket.emit('get_state_floating_info', state)
   }
 
   // on additional floating info response
@@ -159,6 +218,9 @@
 
   // add marker with state data
   socket.on('get_uf_locations_count_answer', placeStateMarker)
+
+  // add inner state marker
+  socket.on('get_state_health_units_pos_answer', placeInnerStateMarker)
 
   // create map
   maps = new gMap.Map($.querySelector('#map'), {

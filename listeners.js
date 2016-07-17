@@ -68,7 +68,6 @@ SELECT unidades_saude.tipo_gestao_id
 	) AS loc_uf ON loc_uf.id = unidades_saude.localizacao_id
 ) AS tipo_gestao_estado ON tipo_gestao_estado.tipo_gestao_id = tipos_gestao.id 
 GROUP BY tipos_gestao.descricao;`, [uf])
-
         conn.release()
         return res
       }).then(([rows]) => {
@@ -77,6 +76,31 @@ GROUP BY tipos_gestao.descricao;`, [uf])
           rows: rows
         }
         socket.emit('get_state_floating_info_answer', response)
+      }).catch((err) => {
+        log(err)
+      })
+    },
+
+    get_state_health_units_pos: (socket, uf) => {
+      dbPool.getConnection().then((conn) => {
+        let res = conn.query(
+          `SELECT tipos_gestao.descricao, localizacoes.latitude, localizacoes.longitude
+FROM localizacoes
+RIGHT JOIN (
+SELECT ufs.id
+FROM ufs
+WHERE ufs.sigla = 'SP'
+) AS ufs_state ON ufs_state.id = localizacoes.uf_id
+LEFT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
+LEFT JOIN tipos_gestao ON unidades_saude.tipo_gestao_id = tipos_gestao.id`, [uf])
+        conn.release()
+        return res
+      }).then(([rows]) => {
+        var response = {
+          uf: uf,
+          rows: rows
+        }
+        socket.emit('get_state_health_units_pos_answer', response)
       }).catch((err) => {
         log(err)
       })
