@@ -55,19 +55,28 @@ GROUP BY ufs.sigla;`, [stateName])
     get_state_floating_info: (socket, uf) => {
       dbPool.getConnection().then((conn) => {
         let res = conn.query(
-`SELECT tipos_gestao.descricao AS description, COUNT(tipos_gestao.id) AS quantity
+`SELECT tipos_gestao.descricao, COUNT(tipos_gestao.id) AS 'count'
 FROM tipos_gestao 
-INNER JOIN unidades_saude ON unidades_saude.tipo_gestao_id = tipos_gestao.id 
-INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id 
-INNER JOIN ufs ON localizacoes.uf_id = ufs.id 
-WHERE ufs.sigla = ?
+INNER JOIN (
+SELECT unidades_saude.tipo_gestao_id 
+	FROM unidades_saude
+	INNER JOIN (
+		SELECT localizacoes.id, localizacoes.uf_id
+		FROM localizacoes
+		INNER JOIN ufs ON ufs.id = localizacoes.uf_id
+		WHERE ufs.sigla = ?
+	) AS loc_uf ON loc_uf.id = unidades_saude.localizacao_id
+) AS tipo_gestao_estado ON tipo_gestao_estado.tipo_gestao_id = tipos_gestao.id 
 GROUP BY tipos_gestao.descricao;`, [uf])
 
         conn.release()
         return res
-      }).then(([[row]]) => {
-        row.uf = uf
-        socket.emit('get_state_floating_info_answer', row)
+      }).then(([rows]) => {
+        var response = {
+          uf: uf,
+          rows: rows
+        }
+        socket.emit('get_state_floating_info_answer', response)
       }).catch((err) => {
         log(err)
       })

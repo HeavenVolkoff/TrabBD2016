@@ -72,18 +72,30 @@
 
   // on additional floating info response
   socket.on('get_state_floating_info_answer', function (data) {
+    var uf = data.uf;
+    var rows = data.rows;
+
+    var typeInfo = ""
+    var sum = 0;
+    rows.forEach(function (item) {
+      typeInfo += '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde '+item.descricao+': ' + ((item.count/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
+      sum += item.count;
+    })
+
     // Create info window
-    markers.states[data.uf].infoWindow = new gMap.InfoWindow({
-      content: '<h3>Estado: ' + data.uf + '<h3/>' +
-      '<h5>Numero de unidades de saúde: ' + markers.states[data.uf].count + '</h5>'
+    markers.states[uf].infoWindow = new gMap.InfoWindow({
+      content: '<h3>Estado: ' + uf + '<h3/>' +
+      '<h5 style="margin: 0 auto; line-height: 1.25em;">Numero de unidades de saúde: ' + markers.states[uf].count + '</h5>'+
+      typeInfo+
+      '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde Tipo Desconhecido: ' + (((markers.states[uf].count - sum)/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
     })
 
     // Adiciona eventos para controle da janela de informações
-    gMap.event.addListener(markers.states[data.uf].marker, 'mouseover', function (e) {
-      markers.states[data.uf].infoWindow.open(maps, this)
+    gMap.event.addListener(markers.states[uf].marker, 'mouseover', function (e) {
+      markers.states[uf].infoWindow.open(maps, this)
     })
-    gMap.event.addListener(markers.states[data.uf].marker, 'mouseout', function (e) {
-      markers.states[data.uf].infoWindow.close(maps, this)
+    gMap.event.addListener(markers.states[uf].marker, 'mouseout', function (e) {
+      markers.states[uf].infoWindow.close(maps, this)
     })
   })
 
@@ -152,15 +164,3 @@
     console.log(err)
   })
 })(typeof window === 'object' ? window : this)
-
-// gMap.event.addListener(marker1, "click", function (e) { iw1.open(map, this); })
-
-// gMap.event.addListener(marker, "click", function (e) { log("Click"); })
-// gMap.event.addListener(marker, "dblclick", function (e) { log("Double Click"); })
-// gMap.event.addListener(marker, "mouseover", function (e) { log("Mouse Over"); })
-// gMap.event.addListener(marker, "mouseout", function (e) { log("Mouse Out"); })
-// gMap.event.addListener(marker, "mouseup", function (e) { log("Mouse Up"); })
-// gMap.event.addListener(marker, "mousedown", function (e) { log("Mouse Down"); })
-// gMap.event.addListener(marker, "dragstart", function (mEvent) { log("Drag Start: " + mEvent.latLng.toString()); })
-// gMap.event.addListener(marker, "drag", function (mEvent) { log("Drag: " + mEvent.latLng.toString()); })
-// gMap.event.addListener(marker, "dragend", function (mEvent) { log("Drag End: " + mEvent.latLng.toString()); })
