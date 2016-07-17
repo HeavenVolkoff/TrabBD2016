@@ -7,9 +7,12 @@
   var Ajax = window.Ajax
   var socket = window.socketConnection
   var MarkerWithLabel = window.MarkerWithLabel
+  var geocoder = new google.maps.Geocoder();
+  var maxZoom = 6;
+  var minZoom = 3;
 
   // Local variables
-  var maps, stateGeoLoc, markers, icons, layer
+  var maps, stateGeoLoc, markers, icons, layer, GeoMarker, stateBounds
 
   /**
    * Get icon by quantity
@@ -40,6 +43,46 @@
   }
 
   /**
+   * Hide marker array from the map
+   * @param markerList {MarkerWithLabel[]}
+   */
+  function hideMarkers(markerList){
+    for (var i = 0; i < markerList.length; i++) {
+      markerList[i].setMap(null);
+    }
+  }
+
+  /**
+   * Show marker array in the map
+   * @param markerList {MarkerWithLabel[]}
+   */
+  function showMarkers(markerList){
+    for (var i = 0; i < markerList.length; i++) {
+      markerList[i].setMap(maps);
+    }
+  }
+
+  /**
+   * Activate state mode view
+   * @param state {string}
+   */
+  function prepareStateMap(state){
+    //hideMarkers(markers.states);
+    if(markers.healthUnits.hasOwnProperty(state)){
+      showMarkers(markers.healthUnits[state])
+    }else{
+      socket.emit('get_state_health_units');
+      maxZoom = 10;
+      geocoder.geocode( { 'address': 'brasil'+state}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          maps.setCenter(results[0].geometry.location);
+          maps.fitBounds(results[0].geometry.viewport);
+        }
+      });
+    }
+  }
+
+  /**
    * Place Markers on each received state location
    * @param data {Object}
    * @param data.state {string}
@@ -67,6 +110,11 @@
       infoWindow: null
     }
 
+    // Adiciona eventos para controle do click em cada estado
+    gMap.event.addListener(markers.states[state].marker, 'click', function (e) {
+      prepareStateMap(state);
+    })
+
     socket.emit('get_state_floating_info', state)
   }
 
@@ -75,19 +123,22 @@
     var uf = data.uf;
     var rows = data.rows;
 
+    //create type info string
     var typeInfo = ""
     var sum = 0;
     rows.forEach(function (item) {
       typeInfo += '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde '+item.descricao+': ' + ((item.count/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
       sum += item.count;
     })
+    if(markers.states[uf].count - sum != 0){
+      typeInfo += '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde Tipo Desconhecido: ' + (((markers.states[uf].count - sum)/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
+    }
 
     // Create info window
     markers.states[uf].infoWindow = new gMap.InfoWindow({
       content: '<h3>Estado: ' + uf + '<h3/>' +
       '<h5 style="margin: 0 auto; line-height: 1.25em;">Numero de unidades de saúde: ' + markers.states[uf].count + '</h5>'+
-      typeInfo+
-      '<h5 style="margin: 0 auto; line-height: 1.25em;">Unidades de Saúde Tipo Desconhecido: ' + (((markers.states[uf].count - sum)/markers.states[uf].count)*100).toFixed(2) + '%</h5>'
+      typeInfo
     })
 
     // Adiciona eventos para controle da janela de informações
@@ -112,18 +163,19 @@
   // create map
   maps = new gMap.Map($.querySelector('#map'), {
     center: {lat: -14.433247, lng: -54.3050727},
-    zoom: 5,
+    zoom: 4,
     disableDefaultUI: true,
     zoomControl: true,
     scaleControl: true,
     rotateControl: true,
-    maxZoom: 6,
-    minZoom: 3
   })
+
+  GeoMarker = new GeolocationMarker(maps);
 
   // data
   markers = {
-    states: {}
+    states: {},
+    healthUnits: {}
   }
 
   // icons
@@ -151,7 +203,6 @@
       }
     ]
   })
-
   layer.setMap(maps)
 
   // Get states geographic location
@@ -163,4 +214,12 @@
   }).catch(function (err) {
     console.log(err)
   })
+
+  google.maps.event.addListener(maps, 'zoom_changed', function() {
+    if (maps.getZoom() > maxZoom) {
+      maps.setZoom(maxZoom)
+    } else if(maps.getZoom() < minZoom){
+      maps.setZoom(minZoom)
+    }
+  });
 })(typeof window === 'object' ? window : this)
