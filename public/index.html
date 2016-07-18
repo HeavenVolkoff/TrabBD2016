@@ -37,7 +37,7 @@
         <!--Socket.IO Parameters-->
         <script>
             window.objectPropertyChange(window, 'io', function(io){
-                window.socketConnection = io.connect('127.0.0.1')
+                window.socketConnection = io.connect(window.location.href)
             })
         </script>
 
