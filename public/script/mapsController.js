@@ -300,19 +300,37 @@
       });
 
       setTimeout(function asyncLoop(){
-        var item = rows[index]
-        if(index < rows.length){
+        var item
+
+        for(; index < rows.length && index % 1000 !== 0; index++){
+          item = rows[index]
           markerCluster.addMarker(
             placeInnerStateMarker(item.latitude, item.longitude, data.uf, getIconInfoByType(item.tipo)),
             true
           )
-          index++
+        }
+
+        if(index < rows.length){
+          if(index % 1000 === 0){
+            item = rows[index]
+
+            markerCluster.addMarker(
+              placeInnerStateMarker(
+                item.latitude,
+                item.longitude,
+                data.uf,
+                getIconInfoByType(item.tipo)
+              ),
+              true
+            )
+
+            index++
+          }
+
           setTimeout(asyncLoop, 0)
         }
 
-        if((index < 1000 && index % 50 == 0) || index % 200 == 0 || index >= rows.length){
-          markerCluster.redraw();
-        }
+        markerCluster.redraw();
       }, 0)
     })
 
