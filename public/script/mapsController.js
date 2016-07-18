@@ -293,8 +293,8 @@
       var markerCluster = new MarkerClusterer(maps, [], {
         zoomOnClick: true,
         averageCenter: true,
-        minimumClusterSize: 10
-//        maxZoom
+        minimumClusterSize: 10,
+        maxZoom: zoomControl.max
 //        gridSize
 //        styles
       });

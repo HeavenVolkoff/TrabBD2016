@@ -9,7 +9,7 @@
 # All # comments will also be ignored
 #
 # Also, we use parametrization in our queries, this technique is used to avoid sql injection
-# an question mark "?" is used to indicate to node (javascript server) what
+# an question markss "?" is used to indicate to node (javascript server) what
 # should be escaped and replaced by the right parameters inside the parameter array
 ##
 
@@ -51,3 +51,5 @@ FROM localizacoes
 	LEFT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
 	LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id
 	GROUP BY unidades_saude.razao_social;
+
+SELECT * FROM tipos_unidade;
