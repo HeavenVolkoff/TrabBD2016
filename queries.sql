@@ -17,21 +17,32 @@ SELECT ufs.sigla FROM ufs;
 -- countLocalizationsPerState
 SELECT ufs.sigla AS state, count(localizacoes.id) AS quantity
 FROM localizacoes
-  INNER JOIN ufs ON localizacoes.uf_id = ufs.id
+	INNER JOIN ufs ON localizacoes.uf_id = ufs.id
 WHERE ufs.sigla = ?
 GROUP BY ufs.sigla;
 
 -- countHealthUnitPerType
 SELECT tipos_gestao.descricao AS type, COUNT(tipos_gestao.id) AS quantity
 FROM tipos_gestao
-INNER JOIN (
-SELECT unidades_saude.tipo_gestao_id
-	FROM unidades_saude
 	INNER JOIN (
-		SELECT localizacoes.id, localizacoes.uf_id
-		FROM localizacoes
-		INNER JOIN ufs ON ufs.id = localizacoes.uf_id
-		WHERE ufs.sigla = ?
-	) AS loc_uf ON loc_uf.id = unidades_saude.localizacao_id
-) AS tipo_gestao_estado ON tipo_gestao_estado.tipo_gestao_id = tipos_gestao.id
+							 SELECT unidades_saude.tipo_gestao_id
+							 FROM unidades_saude
+								 INNER JOIN (
+															SELECT localizacoes.id, localizacoes.uf_id
+															FROM localizacoes
+																INNER JOIN ufs ON ufs.id = localizacoes.uf_id
+															WHERE ufs.sigla = ?
+														) AS loc_uf ON loc_uf.id = unidades_saude.localizacao_id
+						 ) AS tipo_gestao_estado ON tipo_gestao_estado.tipo_gestao_id = tipos_gestao.id
 GROUP BY tipos_gestao.descricao;
+
+-- getHealthUnitPosition
+SELECT tipos_gestao.descricao as description, localizacoes.latitude, localizacoes.longitude
+FROM localizacoes
+	RIGHT JOIN (
+							 SELECT ufs.id
+							 FROM ufs
+							 WHERE ufs.sigla = ?
+						 ) AS ufs_state ON ufs_state.id = localizacoes.uf_id
+	LEFT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
+	LEFT JOIN tipos_gestao ON unidades_saude.tipo_gestao_id = tipos_gestao.id

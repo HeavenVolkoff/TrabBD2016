@@ -43,21 +43,43 @@
 
   /**
    * Hide marker array from the map
-   * @param markerList {MarkerWithLabel[]}
+   * @param markerList {Array}
    */
   function hideMarkers (markerList) {
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(null)
+      markerList[i].marker.setMap(null)
+    }
+  }
+
+  /**
+   * Hide all state markers
+   */
+  function hideAllStatesMarkers () {
+    for (var stateName in states) {
+      if (states.hasOwnProperty(stateName)) {
+        states[stateName].marker.setMap(null)
+      }
     }
   }
 
   /**
    * Show marker array in the map
-   * @param markerList {MarkerWithLabel[]}
+   * @param markerList {Array}
    */
   function showMarkers (markerList) {
     for (var i = 0; i < markerList.length; i++) {
-      markerList[i].setMap(maps)
+      markerList[i].marker.setMap(maps)
+    }
+  }
+
+  /**
+   * Show markers of all states
+   */
+  function showAllStatesMarkers () {
+    for (var stateName in states) {
+      if (states.hasOwnProperty(stateName)) {
+        states[stateName].marker.setMap(maps)
+      }
     }
   }
 
@@ -66,18 +88,21 @@
    * @param state {string}
    */
   function prepareStateMap (state) {
-    // hideMarkers(states)
+    hideAllStatesMarkers()
+
     if (healthUnits.hasOwnProperty(state)) {
       showMarkers(healthUnits[state])
     } else {
-      zoomControl.max = 10
-      geoCoder.geocode({'address': 'brasil' + state}, function (results, status) {
-        if (status === gMap.GeocoderStatus.OK) {
-          maps.setCenter(results[0].geometry.location)
-          maps.fitBounds(results[0].geometry.viewport)
-        }
-      })
+      socket.emit('getHealthUnitPosition', state)
     }
+
+    zoomControl.max = 10
+    geoCoder.geocode({'address': 'brasil' + state}, function (results, status) {
+      if (status === gMap.GeocoderStatus.OK) {
+        maps.setCenter(results[0].geometry.location)
+        maps.fitBounds(results[0].geometry.viewport)
+      }
+    })
   }
 
   /**
@@ -107,6 +132,31 @@
 
     // Adiciona eventos para controle do click em cada estado
     gMap.event.addListener(stateMarker, 'click', function () {
+      prepareStateMap(stateName)
+    })
+  }
+
+  function placeInnerStateMarker (stateName, quantity, icon) {
+    var healthUnitsMarker = new MarkerWithLabel({
+      position: new gMap.LatLng(stateGeoLoc[stateName].lat, stateGeoLoc[stateName].long),
+      map: maps,
+      draggable: false,
+      raiseOnDrag: false,
+      labelContent: quantity,
+      labelAnchor: icon.position,
+      labelClass: 'labels', // the CSS class for the label
+      labelInBackground: false,
+      icon: icon.url
+    })
+
+    healthUnits[stateName] = {
+      marker: healthUnitsMarker,
+      quantity: quantity,
+      infoWindow: null
+    }
+
+    // Adiciona eventos para controle do click em cada estado
+    gMap.event.addListener(healthUnitsMarker, 'click', function () {
       prepareStateMap(stateName)
     })
   }
@@ -227,6 +277,10 @@
     socket.on('countLocalizationsPerState_answer', function countLocalizationsPerStateListener (data) {
       placeStateMarker(data.state, data.quantity, getIconInfoByQuantity(data.quantity))
       socket.emit('countHealthUnitPerType', data.state)
+    })
+    socket.on('getHealthUnitPosition_answer', function getHealthUnitPositionListener (data) {
+      console.log(data)
+    // placeInnerStateMarker()
     })
 
     // Get states geographic location

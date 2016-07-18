@@ -52,6 +52,18 @@ module.exports = (dbPool, query) => {
       }).catch((err) => {
         log(err)
       })
+    },
+
+    getHealthUnitPosition: (socket, uf) => {
+      dbPool.getConnection().then((conn) => {
+        let res = conn.query(query.getHealthUnitPosition, [uf])
+        conn.release()
+        return res
+      }).then(([rows]) => {
+        socket.emit('getHealthUnitPosition_answer', {uf: uf, rows: rows})
+      }).catch((err) => {
+        log(err)
+      })
     }
   }
 }
