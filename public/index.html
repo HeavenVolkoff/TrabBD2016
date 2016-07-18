@@ -27,6 +27,7 @@
                 GoogleMapsLoader.load(function(){
                     // All the scripts that require google maps should load here
                     document.body.appendChild(createScriptTag("node_modules/geolocation-marker/geolocation-marker.js"))
+                    document.body.appendChild(createScriptTag("node_modules/js-marker-clusterer/src/markerclusterer_compiled.js"))
                     document.body.appendChild(createScriptTag("script/libs/markerwithlabel/markerwithlabel.js"))
                     document.body.appendChild(createScriptTag("script/mapsController.js"))
                 })

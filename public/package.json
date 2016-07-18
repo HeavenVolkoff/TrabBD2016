@@ -5,6 +5,7 @@
   "main": "index.html",
   "dependencies": {
     "geolocation-marker": "^2.0.4",
-    "google-maps": "^3.2.1"
+    "google-maps": "^3.2.1",
+    "js-marker-clusterer": "^1.0.0"
   }
 }

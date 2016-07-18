@@ -42,6 +42,20 @@
   }
 
   /**
+   * Get icon by unity type
+   * @param value {number}
+   * @returns {{url: string, position: Point}}
+   */
+  function getIconInfoByType (value) {
+    var iconInfo = {url: '', position: null}
+
+    iconInfo.url = icons.l1
+    iconInfo.position = new gMap.Point(20, 30)
+
+    return iconInfo
+  }
+
+  /**
    * Hide marker array from the map
    * @param markerList {Array}
    */
@@ -96,7 +110,7 @@
       socket.emit('getHealthUnitPosition', state)
     }
 
-    zoomControl.max = 10
+    zoomControl.max = 50
     geoCoder.geocode({'address': 'brasil' + state}, function (results, status) {
       if (status === gMap.GeocoderStatus.OK) {
         maps.setCenter(results[0].geometry.location)
@@ -107,9 +121,9 @@
 
   /**
    * Place Markers on each received state location
-   * @param data {Object}
-   * @param data.state {string}
-   * @param data.quantity {number}
+   * @param stateName {string}
+   * @param quantity {number}
+   * @param icon {object}
    */
   function placeStateMarker (stateName, quantity, icon) {
     var stateMarker = new MarkerWithLabel({
@@ -136,29 +150,24 @@
     })
   }
 
-  function placeInnerStateMarker (stateName, quantity, icon) {
-    var healthUnitsMarker = new MarkerWithLabel({
-      position: new gMap.LatLng(stateGeoLoc[stateName].lat, stateGeoLoc[stateName].long),
-      map: maps,
-      draggable: false,
-      raiseOnDrag: false,
-      labelContent: quantity,
-      labelAnchor: icon.position,
-      labelClass: 'labels', // the CSS class for the label
-      labelInBackground: false,
-      icon: icon.url
+  /**
+   * Place Markers on each received state location
+   * @param latitude {number}
+   * @param longitude {number}
+   * @param stateName {string}
+   * @param icon {object}
+   */
+  function placeInnerStateMarker (latitude, longitude, stateName, icon) {
+    var healthUnitsMarker = new google.maps.Marker({
+      position: new gMap.LatLng(latitude, longitude)
     })
 
     healthUnits[stateName] = {
       marker: healthUnitsMarker,
-      quantity: quantity,
       infoWindow: null
     }
 
-    // Adiciona eventos para controle do click em cada estado
-    gMap.event.addListener(healthUnitsMarker, 'click', function () {
-      prepareStateMap(stateName)
-    })
+    return healthUnitsMarker;
   }
 
   function placeMarkerFloatingBubble (uf, healthUnitInfoArray) {
@@ -279,8 +288,32 @@
       socket.emit('countHealthUnitPerType', data.state)
     })
     socket.on('getHealthUnitPosition_answer', function getHealthUnitPositionListener (data) {
-      console.log(data)
-    // placeInnerStateMarker()
+      var index = 0
+      var rows = data.rows
+      var markerCluster = new MarkerClusterer(maps, [], {
+        zoomOnClick: true,
+        averageCenter: true,
+        minimumClusterSize: 10
+//        maxZoom
+//        gridSize
+//        styles
+      });
+
+      setTimeout(function asyncLoop(){
+        var item = rows[index]
+        if(index < rows.length){
+          markerCluster.addMarker(
+            placeInnerStateMarker(item.latitude, item.longitude, data.uf, getIconInfoByType(item.tipo)),
+            true
+          )
+          index++
+          setTimeout(asyncLoop, 0)
+        }
+
+        if((index < 1000 && index % 50 == 0) || index % 200 == 0 || index >= rows.length){
+          markerCluster.redraw();
+        }
+      }, 0)
     })
 
     // Get states geographic location

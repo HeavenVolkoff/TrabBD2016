@@ -37,7 +37,7 @@ FROM tipos_gestao
 GROUP BY tipos_gestao.descricao;
 
 -- getHealthUnitPosition
-SELECT tipos_gestao.descricao as description, localizacoes.latitude, localizacoes.longitude
+SELECT tipos_unidade.tipo AS tipo, localizacoes.latitude, localizacoes.longitude
 FROM localizacoes
 	RIGHT JOIN (
 							 SELECT ufs.id
@@ -45,4 +45,4 @@ FROM localizacoes
 							 WHERE ufs.sigla = ?
 						 ) AS ufs_state ON ufs_state.id = localizacoes.uf_id
 	LEFT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
-	LEFT JOIN tipos_gestao ON unidades_saude.tipo_gestao_id = tipos_gestao.id
+	LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id
