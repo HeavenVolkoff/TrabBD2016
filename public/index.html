@@ -2,67 +2,29 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Hello</title>
+        <title>Mapa da Saúde</title>
 
-        <link rel="stylesheet" type="text/css" href="script/libs/markerwithlabel/markerwithlabel.css">
+        <!--[if lt IE 9]>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.4.1/ie8.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <![endif]-->
 
-        <!--Sync Libraries-->
-        <script type="application/javascript" src="script/objectPropertyChange.js"></script>
-
-        <!-- GoogleMaps Parameters -->
-        <script>
-            function createScriptTag(src){
-                var script = document.createElement('script')
-                script.setAttribute('type', 'application/javascript')
-                script.setAttribute('src', src)
-
-                return script
-            }
-
-            window.objectPropertyChange(window, 'GoogleMapsLoader', function(GoogleMapsLoader){
-                GoogleMapsLoader.KEY = 'AIzaSyCxc0e8zfQbCdf2NVPHGjsuvfTA3loMmpw'
-                GoogleMapsLoader.LANGUAGE = 'pt-br'
-                GoogleMapsLoader.REGION = 'BR';
-
-                GoogleMapsLoader.load(function(){
-                    // All the scripts that require google maps should load here
-                    document.body.appendChild(createScriptTag("node_modules/geolocation-marker/geolocation-marker.js"))
-                    document.body.appendChild(createScriptTag("node_modules/js-marker-clusterer/src/markerclusterer_compiled.js"))
-                    document.body.appendChild(createScriptTag("script/libs/markerwithlabel/markerwithlabel.js"))
-                    document.body.appendChild(createScriptTag("script/mapsController.js"))
-                })
-            })
-        </script>
-
-        <!--Socket.IO Parameters-->
-        <script>
-            window.objectPropertyChange(window, 'io', function(io){
-                window.socketConnection = io.connect('127.0.0.1')
-            })
-        </script>
-
-        <style>
-            html, body{
-                width: 100vw;
-                height: 100vh;
-                margin: 0;
-                padding: 0;
-                border: 0;
-            }
-
-            #map{
-                width: 100%;
-                height: 100%;
-            }
-        </style>
+        <!-- Style -->
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css">
+        <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.2/dist/leaflet.css">
+        <link rel="stylesheet" href="style/main.css">
     </head>
     <body>
-        <div id="map"></div>
+        <div id="map">Loading...</div>
 
-        <!--Libraries-->
-        <script defer type="application/javascript" src="script/Ajax.js"></script>
-        <script defer type="application/javascript" src="script/formatString.js"></script>
-        <script defer type="application/javascript" src="socket.io/socket.io.js"></script>
-        <script defer type="application/javascript" src="node_modules/google-maps/lib/Google.min.js"></script>
+        <!-- ECMAScript 5 + Promise Polyfill -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-sham.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.3.2/json3.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/bluebird/3.4.1/bluebird.min.js"></script>
+        <!-- DOM 4 Polyfill -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/dom4/1.8.3/dom4.js"></script>
+        <!-- Main Script -->
+        <script async data-main="script/main.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js"></script>
     </body>
 </html>

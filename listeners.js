@@ -14,17 +14,18 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
 /**
  * Socket.IO listeners
  * @param dbPool
+ * @param query {Object}
  * @returns {Object}
  */
 module.exports = (dbPool, query) => {
   return {
-    getStates: (socket) => {
+    ready: (socket) => {
       dbPool.getConnection().then((conn) => {
-        let res = conn.query({sql: query.getStates, rowsAsArray: true})
+        let rows = conn.query(query.healthUnitsPerState)
         conn.release()
-        return res
-      }).then(([rows]) => {
-        socket.emit('getStates_answer', [].concat(...rows)) // Flatten rows array
+        return rows
+      }).then(function ([rows]) {
+        socket.emit('healthUnitsPerState', rows) // Flatten rows array
       }).catch((err) => {
         log(err)
       })

@@ -16,7 +16,7 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
 // SQL Regular Expressions
 const regExp = {
   removeHashTag: /(\s|;|^)#[\s\S]+?(?=\n|$)/g,
-  queryPattern: /--([\w \t\r]+?(?=\n))([\s\S]+?(?=;|--|$))/g,
+  queryPattern: /--([\w \t\r]+?(?=\n))([\s\S]+?(?=--|$))/g,
   openExpression: /(\(|\[|\{)\s+/g,
   closeExpression: /\s+(\)|]|})/g,
   space: /\s+/g
@@ -38,10 +38,9 @@ module.exports = (filePath) => {
   while ((queryInfo = regExp.queryPattern.exec(file)) !== null) {
     let name = queryInfo[1].replace(regExp.space, '')
     let query = queryInfo[2]
-        .replace(regExp.space, (match, offset) => offset === 0 ? '' : ' ')
-        .replace(regExp.openExpression, '$1')
-        .replace(regExp.closeExpression, '$1') +
-      ';'
+      .replace(regExp.space, (match, offset, string) => offset === 0 || offset + match.length === string.length ? '' : ' ')
+      .replace(regExp.openExpression, '$1')
+      .replace(regExp.closeExpression, '$1')
 
     queries[name] = query
   }

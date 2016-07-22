@@ -167,7 +167,7 @@
       infoWindow: null
     }
 
-    return healthUnitsMarker;
+    return healthUnitsMarker
   }
 
   function placeMarkerFloatingBubble (uf, healthUnitInfoArray) {
@@ -294,15 +294,15 @@
         zoomOnClick: true,
         averageCenter: true,
         minimumClusterSize: 10
-//        maxZoom
-//        gridSize
-//        styles
-      });
+      //        maxZoom
+      //        gridSize
+      //        styles
+      })
 
-      setTimeout(function asyncLoop(){
+      setTimeout(function asyncLoop () {
         var item
 
-        for(; index < rows.length && index % 1000 !== 0; index++){
+        for (; index < rows.length && index % 1000 !== 0; index++) {
           item = rows[index]
           markerCluster.addMarker(
             placeInnerStateMarker(item.latitude, item.longitude, data.uf, getIconInfoByType(item.tipo)),
@@ -310,8 +310,8 @@
           )
         }
 
-        if(index < rows.length){
-          if(index % 1000 === 0){
+        if (index < rows.length) {
+          if (index % 1000 === 0) {
             item = rows[index]
 
             markerCluster.addMarker(
@@ -330,7 +330,7 @@
           setTimeout(asyncLoop, 0)
         }
 
-        markerCluster.redraw();
+        markerCluster.redraw()
       }, 0)
     })
 
