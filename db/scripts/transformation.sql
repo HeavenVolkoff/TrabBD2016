@@ -87,8 +87,8 @@ CREATE TABLE municipios(
 CREATE TABLE localizacoes(
 	id BINARY(16) PRIMARY KEY,
 	coord_origem_id BINARY(16) NULL,
-	latitude decimal(34,15) NULL,
-	longitude decimal(29,12) NULL,
+	latitude DECIMAL(10, 6) NULL,
+	longitude DECIMAL(11,6) NULL,
 	regiao_id BINARY(16) NULL,
 	uf_id BINARY(16) NULL,
 	bairro_id BINARY(16) NULL,
@@ -245,8 +245,8 @@ INSERT IGNORE INTO localizacoes
 	)
 	SELECT
 		UNHEX(MD5(cnes_ativos.co_cnes)) AS 'id',
-		cnes_ativos.lat AS 'latitude',
-		cnes_ativos.long AS 'razao_social',
+		TRUNCATE(cnes_ativos.lat, 6) AS 'latitude',
+		TRUNCATE(cnes_ativos.long, 6) AS 'longitude',
 		cnes_ativos.co_cep AS 'cep',
 		cnes_ativos.no_logradouro AS 'endereco',
 		cnes_ativos.nu_endereco AS 'numero_endereco',

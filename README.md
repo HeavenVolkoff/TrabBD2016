@@ -7,7 +7,9 @@
 [connect]: https://github.com/senchalabs/connect
 [debug]: https://github.com/visionmedia/debug
 [serve-static]: https://github.com/expressjs/serve-static
+[maps-api]: https://developers.google.com/maps/web/
 [js-marker-clusterer]: https://github.com/googlemaps/js-marker-clusterer
+[marker-with-label]: https://github.com/printercu/google-maps-utility-library-v3-read-only/tree/master/markerwithlabel
 
 # TrabBD2016
 Trabalho de Banco de Dados 2016.1
@@ -74,4 +76,6 @@ npm install
 
 + Bibliotecas Front-End (Navegador):
     + [socket.io (Client)][socket.io]
+    + [maps api for web][maps-api]
+    + [marker with label][marker-with-label]
     + [marker clusterer][js-marker-clusterer]

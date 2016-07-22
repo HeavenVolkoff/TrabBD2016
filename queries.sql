@@ -7,6 +7,10 @@
 #
 # Anything other than this will be ignored and have only informational value
 # All # comments will also be ignored
+#
+# Also, we use parametrization in our queries, this technique is used to avoid sql injection
+# an question markss "?" is used to indicate to node (javascript server) what
+# should be escaped and replaced by the right parameters inside the parameter array
 ##
 
 USE TrabalhoBD; # Ignored py parser, informational value only

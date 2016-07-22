@@ -293,11 +293,11 @@
       var markerCluster = new MarkerClusterer(maps, [], {
         zoomOnClick: true,
         averageCenter: true,
-        minimumClusterSize: 10
-      //        maxZoom
-      //        gridSize
-      //        styles
-      })
+        minimumClusterSize: 10,
+        maxZoom: zoomControl.max
+//        gridSize
+//        styles
+      });
 
       setTimeout(function asyncLoop () {
         var item
