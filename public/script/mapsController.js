@@ -295,9 +295,9 @@
         averageCenter: true,
         minimumClusterSize: 10,
         maxZoom: zoomControl.max
-//        gridSize
-//        styles
-      });
+      //        gridSize
+      //        styles
+      })
 
       setTimeout(function asyncLoop () {
         var item

@@ -21,17 +21,23 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
    * App object
    *
    * @type {{
-   * config: {leaflet: {provider: String, options: Object}},
-   * socket: SocketIOClient.Socket,
-   * ready: Boolean,
-   * ui: {id: Object, map: (Function|Object)}
-   * }}
+   *  config: {leaflet: {provider: String, options: Object}},
+   *  socket: SocketIOClient.Socket,
+   *  ready: Boolean,
+   *  ui: {id: Object, map: (Function|Object)}
+   *  data: {
+   *    brasil: {position: {lat: Number, lng: Number}, bounds: Leaflet.LatLngBounds, zoom: {min: Number, max: Number}}
+   *  }}}
    */
   app = {
     config: null,
     socket: IO.connect(window.location.host),
     ready: false,
-    ui: null
+    ui: null,
+    data: {
+      brasil: null,
+      colorByState: {}
+    }
   }
 
   Ajax.get('data/configuration.json', 'json')
