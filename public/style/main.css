@@ -11,6 +11,11 @@ html, body{
     height: 100%;
 }
 
+.mapMarker {
+    border: 0px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .healthUnitsPerStateMarker {
     margin: 0;
     color: #307fef;

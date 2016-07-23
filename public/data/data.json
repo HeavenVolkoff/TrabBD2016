@@ -1,0 +1,83 @@
+{
+  "leaflet": {
+    "provider": "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "options": {
+      "attribution": "Map data © <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors"
+    },
+    "layers": {
+      "style": {
+        "stateLayerHover": {
+          "color": "#666",
+          "weight": 5,
+          "dashArray": "",
+          "fillOpacity": 0.7
+        },
+        "stateLayerDefault" : {
+          "weight": 2,
+          "opacity": 1,
+          "color": "white",
+          "dashArray": "3",
+          "fillOpacity": 0.7,
+          "fillColor": "#72b1ff"
+        },
+        "colorsPerState": ["#72b1ff", "#3388ff", "#19447F", "#3388FF"]
+      },
+      "makers": {
+        "healthUnitPerStateHTML": "<span class=\"map-icon map-icon-label healthUnitsPerStateMarker {1}\">{0}</span>"
+      }
+    }
+  },
+  "brasilInfo": {
+    "fips": "BR",
+    "iso2": "BR",
+    "iso3": "BRA",
+    "un": 76,
+    "name": "Brazil",
+    "area": 845942,
+    "population": {
+      "2005": 186830759
+    },
+    "region": 19,
+    "subregion": 5,
+    "center": {
+      "lat": -15,
+      "lng": -60
+    },
+    "zoom": {
+      "max": 6,
+      "min": 4
+    },
+    "statesAcronyms": [
+      "AC",
+      "AL",
+      "AM",
+      "AP",
+      "BA",
+      "CE",
+      "DF",
+      "ES",
+      "GO",
+      "MA",
+      "MG",
+      "MS",
+      "MT",
+      "PA",
+      "PB",
+      "PE",
+      "PI",
+      "PR",
+      "RJ",
+      "RN",
+      "RO",
+      "RR",
+      "RS",
+      "SC",
+      "SE",
+      "SP",
+      "TO"
+    ],
+    "positionFix": {
+      "PE": {"lat":-8.8137173,"lng":-36.95410700000002}
+    }
+  }
+}

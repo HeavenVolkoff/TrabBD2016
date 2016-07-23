@@ -1,176 +1,172 @@
 window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
   'use strict'
 
-  var $, errorListener, UI
+  var $, promiseErrorListener, UI
 
   $ = document
-  errorListener = function (e) { console.error(e) }
+  promiseErrorListener = function (e) { console.error(e) }
 
   UI = {
     id: {
       map: 'map'
     },
 
-    map: function (app) {
+    map: function (app, data) {
       var map,
+        temp,
         layers,
-        marker,
+        counter,
+        listeners,
         mapElement,
-        onStateClick,
-        onStateMouseOut,
-        onStateMouseOver,
-        statesGeoJsonAndMarkerHtmlPromise
+        statesAcronyms,
+        stateLayerHover,
+        stateLayerDefault,
+        stateLayerHoverStyleNegative
 
-      mapElement = $.querySelector('#' + UI.id.map)
+      statesAcronyms = data.brasilInfo.statesAcronyms
+
+      stateLayerHover = data.leaflet.layers.style.stateLayerHover
+      stateLayerDefault = data.leaflet.layers.style.stateLayerDefault
+      stateLayerHoverStyleNegative = {}
+      for (temp in stateLayerHover) {
+        if (stateLayerHover.hasOwnProperty(temp) &&
+          stateLayerDefault.hasOwnProperty(temp)
+        ) {
+          stateLayerHoverStyleNegative[temp] = stateLayerDefault[temp]
+        }
+      }
+
+      listeners = {
+        stateLayerClick: function zoomToFeature (event) {
+          map.options.minZoom = 0
+          map.options.maxZoom = 18
+          map.setMaxBounds(null)
+
+          console.log(event)
+
+          map.once("moveend zoomend", function () {
+            map.setMaxBounds(event.target.getBounds())
+            map.options.minZoom = map.getZoom()
+          })
+
+          map.fitBounds(event.target.getBounds())
+          // TODO requisitar informações do estado e pontos do estado
+        },
+        stateLayerMouseOut: function resetHighlight (event) {
+          event.target.setStyle(stateLayerHoverStyleNegative)
+        },
+        stateLayerMouseOver: function highlightFeature (event) {
+          var layer = event.target
+          layer.setStyle(stateLayerHover)
+          if (!(Leaflet.Browser.ie || Leaflet.Browser.opera)) {
+            layer.bringToFront()
+          }
+        },
+        stateGeoJsonAjaxRequest: function (stateGeoJson) {
+          layers.statesGeoJson.addData(stateGeoJson)
+        },
+        stateGeoJsonFeatureListener: function onEachFeature (feature, layer) {
+          layers.stateGeoJson[feature.properties.sigla] = layer
+          layer.on({
+            mouseover: listeners.stateLayerMouseOver,
+            mouseout: listeners.stateLayerMouseOut,
+            click: listeners.stateLayerClick
+          })
+        },
+        stateMarkerDataListener: function (stateName, stateGeometryLayer, healthUnitQuantity, iconSizeCssClass) {
+          var style
+          if (stateGeometryLayer instanceof Promise) {
+            stateGeometryLayer.then(function () {
+              listeners.stateMarkerDataListener(stateName, stateGeometryLayer, healthUnitQuantity, iconSizeCssClass)
+            }).catch(promiseErrorListener)
+          }
+
+          style = _.assign({}, stateLayerDefault)
+          style.fillColor = data.leaflet.layers.style.colorsPerState[iconSizeCssClass]
+          stateGeometryLayer.setStyle(style)
+
+          layers.stateMarkers.addLayer(Leaflet.marker(
+            stateName === 'PE' ? data.brasilInfo.positionFix['PE'] : stateGeometryLayer.getBounds().getCenter(),
+            {
+              icon: Leaflet.divIcon({
+                className: 'mapMarker',
+                html: _.format(data.leaflet.layers.makers.healthUnitPerStateHTML,
+                  healthUnitQuantity,
+                  iconSizeCssClass ? '_' + iconSizeCssClass : ''
+                )
+              })
+            })
+          )
+        }
+      }
+
+      console.log('listeners ok')
 
       layers = {
-        tile: Leaflet.tileLayer(app.config.leaflet.provider, app.config.leaflet.options),
-        shape: {
-          brasil: {},
-          estados: {}
-        },
-        geoJSON: {
-          brasil: null,
-          estados: null
-        }
+        tile: Leaflet.tileLayer(data.leaflet.provider, data.leaflet.options),
+        perMarkers: {},
+        stateMarkers: Leaflet.layerGroup(),
+        statesGeoJson: Leaflet.geoJson(null, {
+          style: stateLayerDefault,
+          onEachFeature: listeners.stateGeoJsonFeatureListener
+        }),
+        stateGeoJson: {}
       }
 
-      marker = {
-        healthUnitsPerState: {}
-      }
+      console.log('layers ok')
 
+      mapElement = $.querySelector('#' + UI.id.map)
       map = Leaflet.map(mapElement, {
-        layers: layers.tile
+        layers: [
+          layers.tile,
+          layers.statesGeoJson,
+          layers.stateMarkers
+        ],
+        center: data.brasilInfo.center,
+        zoom: data.brasilInfo.zoom.min,
+        minZoom: data.brasilInfo.zoom.min,
+        maxZoom: data.brasilInfo.zoom.max
       })
+      map.setMaxBounds(map.getBounds())
 
-      onStateMouseOver = function highlightFeature (e) {
-        var layer = e.target
+      console.log('maps ok')
 
-        layer.setStyle({
-          weight: 5,
-          color: '#666',
-          dashArray: '',
-          fillOpacity: 0.7
-        })
-
-        if (!(Leaflet.Browser.ie || Leaflet.Browser.opera)) {
-          layer.bringToFront()
-        }
+      for (counter = 0; counter < statesAcronyms.length; counter++) {
+        layers.stateGeoJson[statesAcronyms[counter]] =
+            Ajax.get(_.format('data/GeoJson/states/{0}.json', statesAcronyms[counter]), 'json')
+              .then(listeners.stateGeoJsonAjaxRequest)
+              .catch(promiseErrorListener)
       }
 
-      onStateMouseOut = function resetHighlight (e) {
-        layers.geoJSON.estados.resetStyle(e.target)
-      }
-
-      onStateClick = function zoomToFeature (e) {
-        map.fitBounds(e.target.getBounds())
-      // TODO requisitar informações do estado e pontos do estado
-      }
-
-      // Load Brasil GeoJson
-      Ajax.get('data/GeoJSON/BR.json', 'json')
-        .then(function (brasilGeoInfo) {
-          // Load Brasil shape into map
-          // layers.shape.brasil = Leaflet.geoJson(brasilGeoInfo)
-
-          // Cache geoJson properties
-          app.data.brasil = brasilGeoInfo.properties
-          // TODO: implement Object.assign: app.data.brasil.bounds =
-
-          // Adjust map options to centralize Brasil and limite drag and zoom
-          map.setView(app.data.brasil.position, 5, { animate: true })
-          map.setMaxBounds(map.getBounds())
-          map.options.minZoom = app.data.brasil.zoom.min
-          map.options.maxZoom = app.data.brasil.zoom.max
-        })
-        .catch(errorListener)
-
-      // Load States GeoJson and markers HTML
-      statesGeoJsonAndMarkerHtmlPromise = Promise.all(
-        [
-          Ajax.get('data/GeoJSON/Estados.json', 'json'),
-          Ajax.get('import/healthUnitsPerStateCounterMarker.html', 'text')
-        ])
-        .then(function (results) {
-          map.invalidateSize()
-          // TODO: reset map zoom
-          layers.geoJSON.estados = Leaflet.geoJson(results[0], {
-            onEachFeature: function onEachFeature (feature, layer) {
-              layers.shape.estados[feature.properties.sigla] = layer
-              layer.on({
-                mouseover: onStateMouseOver,
-                mouseout: onStateMouseOut,
-                click: onStateClick
-              })
-            }
-          }).addTo(map)
-
-          return results[1]
-        })
-        .catch(errorListener)
+      console.log('ajax ok')
 
       // Wait server healthUnitsPerState query response
-      app.socket.once('healthUnitsPerState',
+      app.socket.once(
+        'healthUnitsPerState',
         /**
          * Add state markers and shapes into map
          * @param results {{healthUnitQuantity: Number, stateName: String}[]}
          */
         function (results) {
-          statesGeoJsonAndMarkerHtmlPromise
-            .then(function (markerHtml) {
-              var result, iconSizeCssClass, colorByState
-              colorByState = app.data.colorByState
+          var result, iconSizeCssClass
+          for (counter = 0; counter < results.length; counter++) {
+            result = results[counter]
+            iconSizeCssClass = ((Math.log10(result.healthUnitQuantity) >>> 0) - 2)
+            iconSizeCssClass = iconSizeCssClass > 3 ? 3 : iconSizeCssClass
 
-              for (var i = 0; i < results.length; i++) {
-                result = results[i]
-
-                iconSizeCssClass = ((Math.log10(result.healthUnitQuantity) >>> 0) - 2)
-                iconSizeCssClass = iconSizeCssClass > 3 ? 3 : iconSizeCssClass
-
-                switch (iconSizeCssClass) {
-                  case 0:
-                    colorByState[result.stateName] = '#72b1ff'
-                    break
-                  case 1:
-                    colorByState[result.stateName] = '#3388ff'
-                    break
-                  case 2:
-                    colorByState[result.stateName] = '#19447F'
-                    break
-                  case 3:
-                    colorByState[result.stateName] = '#3388FF'
-                    break
-                }
-
-                marker.healthUnitsPerState[result.stateName] = Leaflet.marker(layers.shape.estados[result.stateName].getBounds().getCenter(), {
-                  icon: Leaflet.divIcon({
-                    className: 'healthUnitsPerStateCounter',
-                    html: _.format(markerHtml, result.healthUnitQuantity, iconSizeCssClass ? '_' + iconSizeCssClass : '')
-                  })
-                }).addTo(map)
-              }
-
-              layers.geoJSON.estados.setStyle(
-                layers.geoJSON.estados.options.style = function (feature) {
-                  return {
-                    weight: 2,
-                    opacity: 1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 0.7,
-                    fillColor: app.data.colorByState[feature.properties.sigla]
-                  }
-                }
-              )
-            })
-            .catch(errorListener)
+            listeners.stateMarkerDataListener(
+              result.stateName,
+              layers.stateGeoJson[result.stateName],
+              result.healthUnitQuantity,
+              iconSizeCssClass
+            )
+          }
         }
       )
 
       // Cache data into UI.map
       return {
         leaflet: map,
-        markers: marker,
         layers: layers
       }
     }

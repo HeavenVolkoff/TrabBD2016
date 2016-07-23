@@ -78,6 +78,22 @@ window.define(function () {
       return function () {
         fn()
       }
+    },
+
+    assign: function fastAssign (target) {
+      var totalArgs, source, i, totalKeys, keys, key, j
+      totalArgs = arguments.length
+
+      for (i = 1; i < totalArgs; i++) {
+        source = arguments[i]
+        keys = Object.keys(source)
+        totalKeys = keys.length
+        for (j = 0; j < totalKeys; j++) {
+          key = keys[j]
+          target[key] = source[key]
+        }
+      }
+      return target
     }
   }
 

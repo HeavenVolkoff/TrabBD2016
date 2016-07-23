@@ -21,39 +21,32 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
    * App object
    *
    * @type {{
-   *  config: {leaflet: {provider: String, options: Object}},
    *  socket: SocketIOClient.Socket,
    *  ready: Boolean,
    *  ui: {id: Object, map: (Function|Object)}
-   *  data: {
-   *    brasil: {position: {lat: Number, lng: Number}, bounds: Leaflet.LatLngBounds, zoom: {min: Number, max: Number}}
-   *  }}}
+   *  }}
    */
   app = {
-    config: null,
     socket: IO.connect(window.location.host),
     ready: false,
-    ui: null,
-    data: {
-      brasil: null,
-      colorByState: {}
-    }
+    ui: null
   }
 
-  Ajax.get('data/configuration.json', 'json')
-    .then(function (config) {
-      app.config = config
+  Ajax.get('data/data.json', 'json')
+    .then(function (data) {
+      app.config = data.config
       app.ready = true
       app.ui = UI
 
-      // Exec UI element set-up
+      // Exec each UI element set-up function
       for (elementName in UI) {
         elementSetup = UI[elementName]
         if (UI.hasOwnProperty(elementName) && typeof elementSetup === 'function') {
-          UI[elementName] = elementSetup(app)
+          UI[elementName] = elementSetup(app, data)
         }
       }
 
+      // Inform server that we are ready to receive database data
       app.socket.emit('ready')
     })
     .catch(function (error) {
