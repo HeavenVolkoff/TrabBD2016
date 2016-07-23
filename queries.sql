@@ -48,15 +48,172 @@ GROUP BY tipos_gestao.descricao;
 
 -- getHealthUnitPosition
 SELECT
-  GROUP_CONCAT(tipos_unidade.tipo) AS tipo,
-  AVG(localizacoes.latitude)       AS latitude,
-  AVG(localizacoes.longitude)      AS longitude
+  tipos_unidade.tipo AS tipo,
+  localizacoes.latitude       AS latitude,
+  localizacoes.longitude      AS longitude
 FROM localizacoes
   RIGHT JOIN (
                SELECT ufs.id
                FROM ufs
                WHERE ufs.sigla = ?
              ) AS ufs_state ON ufs_state.id = localizacoes.uf_id
-  LEFT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
-  LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id
-GROUP BY unidades_saude.razao_social;
+  RIGHT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
+  LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id;
+
+-- unityTelephones
+SELECT telefones.numero
+  FROM
+    telefones
+  LEFT JOIN unidades_saude ON unidades_saude.id = telefones.unidade_saude_id
+  WHERE unidades_saude.id = ?;
+
+-- governmentControlledUnits
+SELECT governo.count AS Governo, total.count AS Total
+  FROM (
+      SELECT COUNT(unidades_saude.id) as count
+      FROM unidades_saude
+      INNER JOIN tipos_gestao ON unidades_saude.tipo_gestao_id = tipos_gestao.id
+      WHERE tipos_gestao.descricao = 'Estadual' OR tipos_gestao.descricao = 'Municipal'
+    ) AS governo, (
+    SELECT COUNT(unidades_saude.id) as count
+      FROM unidades_saude
+    ) AS total;
+
+-- regionUnitsDistribution
+SELECT regioes.nome AS regiao, COUNT(unidades_saude.id) AS numero_unidades
+  FROM unidades_saude
+  INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+  INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
+  GROUP BY regioes.nome;
+
+-- regionScoreByCategory
+SELECT regioes.nome AS regiao, categorias_avaliacoes.nome AS categorias, (AVG(notas.valor)/3)*10 AS notas
+  FROM unidades_saude
+  INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+  INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
+  INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
+  INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+  INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+  GROUP BY regioes.nome, categorias_avaliacoes.nome;
+
+-- regionDistributionByType
+SELECT regioes.nome AS regiao, tipos_unidade.tipo AS tipo, COUNT(unidades_saude.id) AS numero_unidades
+  FROM unidades_saude
+  INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+  INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
+  INNER JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id
+  GROUP BY regioes.nome, tipos_unidade.tipo;
+
+-- avgUnitCountByOwner
+SELECT AVG(unidades_mantenedora.count)
+  FROM (
+    SELECT unidades_saude.mantenedora_id AS id, COUNT(unidades_saude.id) AS count
+    FROM unidades_saude
+    GROUP BY unidades_saude.mantenedora_id
+  ) AS unidades_mantenedora
+  GROUP BY NULL;
+
+-- healthUnityInfo
+SELECT
+  unidade.razao_social AS razao_social,
+  unidade.nome_fantansia AS nome_fantasia,
+  mantenedoras.razao_social AS razao_social_mantenedora,
+  mantenedoras.cnpj AS cnpj_mantenedora,
+  bairros.nome AS bairro,
+  municipios.nome AS municipio
+FROM (
+      SELECT *
+      FROM unidades_saude
+      WHERE unidades_saude.id = ?
+     ) AS unidade
+LEFT JOIN mantenedoras ON unidade.mantenedora_id = mantenedoras.id
+LEFT JOIN localizacoes ON unidade.localizacao_id = localizacoes.id
+LEFT JOIN bairros ON localizacoes.bairro_id = bairros.id
+LEFT JOIN municipios ON localizacoes.municipio_id = municipios.id;
+
+-- healthUnityTelephones
+SELECT
+  telefones.numero
+FROM (
+      SELECT *
+      FROM unidades_saude
+      WHERE unidades_saude.id = ?
+     ) AS unidade
+LEFT JOIN telefones ON TrabalhoBD.telefones.unidade_saude_id = unidade.id;
+
+-- healthUnityScores
+SELECT
+  categorias_avaliacoes.nome AS categoria,
+  notas.descricao AS avaliacao,
+  notas.valor AS valor
+FROM (
+      SELECT *
+      FROM unidades_saude
+      WHERE unidades_saude.id = ?
+     ) AS unidade
+LEFT JOIN nota_unidade_saude ON nota_unidade_saude.unidade_saude_id = unidade.id
+INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id;
+
+-- StateUnitsScoreAvg
+SELECT categorias_avaliacoes.nome AS categoria, (AVG(notas.valor)/3)*10 AS nota
+FROM (
+  SELECT unidades_saude.id AS id
+  FROM unidades_saude
+  INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
+  INNER JOIN ufs ON localizacoes.uf_id = ufs.id
+  WHERE ufs.sigla = ?
+) AS unidades
+INNER JOIN nota_unidade_saude ON nota_unidade_saude.unidade_saude_id = unidades.id
+INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+GROUP BY categorias_avaliacoes.nome;
+
+-- StateUnitsTypeDistribution
+SELECT tipos_unidade.tipo AS tipo, COUNT(unidades.id) AS quantidade
+FROM (
+  SELECT unidades_saude.id AS id, unidades_saude.tipo_unidade_id AS tipo_unidade_id
+  FROM unidades_saude
+  INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
+  INNER JOIN ufs ON localizacoes.uf_id = ufs.id
+  WHERE ufs.sigla = ?
+) AS unidades
+INNER JOIN tipos_unidade ON tipos_unidade.id = unidades.tipo_unidade_id
+GROUP BY tipos_unidade.tipo;
+
+-- SearchBar
+SELECT *
+FROM (
+  SELECT 'Location' AS tipo, ufs.sigla
+  FROM ufs
+  WHERE ufs.sigla LIKE ?
+  LIMIT 1
+)AS locations
+UNION
+SELECT *
+FROM (
+  SELECT 'Unity-nome' AS tipo, unidades_saude.id AS id
+  FROM unidades_saude
+  WHERE
+    unidades_saude.nome_fantansia LIKE ?
+  LIMIT 1
+)AS unit_nome
+UNION
+SELECT *
+FROM (
+  SELECT 'Unity-razao-social' AS tipo, unidades_saude.id AS id
+  FROM unidades_saude
+  WHERE
+    unidades_saude.razao_social LIKE ?
+  LIMIT 1
+)AS unit_nome
+UNION
+SELECT *
+FROM (
+  SELECT 'Unity-telefone' AS tipo, unidades_saude.id AS id
+  FROM unidades_saude
+  INNER JOIN telefones ON unidades_saude.id = telefones.unidade_saude_id
+  WHERE
+    telefones.numero LIKE ?
+  LIMIT 1
+)AS unit_nome
