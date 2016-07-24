@@ -234,7 +234,10 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         layers: layers
       }
     },
+
     sideBar: function (app, data) {
+      var elements, container
+
       elements = {
         quickInfoHeader: null,
         quickInfoItem: null

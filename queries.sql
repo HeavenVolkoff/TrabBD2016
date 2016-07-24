@@ -3,14 +3,14 @@
 #
 # The Pattern used to parse the queries is:
 # $> -- QueryName
-# $> Query
+# $> Query (till it finds another `--` or EOF)
 #
 # Anything other than this will be ignored and have only informational value
 # All # comments will also be ignored
 #
-# Also, we use parametrization in our queries, this technique is used to avoid sql injection
-# an question marks "?" is used to indicate to node (javascript server) what
-# should be escaped and replaced by the right parameters inside the parameter array
+# Also, we use parametrization. This technique helps avoid sql injection such that
+# any question marks "?" inside our queries indicates to node.js (javascript server)
+# what should be escaped and replaced by the right sanitized input parameters
 ##
 
 USE TrabalhoBD; # Ignored py parser, informational value only
