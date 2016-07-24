@@ -6,13 +6,189 @@ html, body{
     border: 0;
 }
 
+.map-container{
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: calc(100vw - 408px);
+    height: 100vh;
+}
+
+.sidebar{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 408px;
+    height: 100vh;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+.sidebar-content{
+    position: relative;
+    top: 66px;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.sidebar-coolbox{
+    position: relative;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.coolbox-item{
+    position: relative;
+    width: 100%;
+    height: 43px;
+}
+
+.coolbox-item-img-container{
+    position: relative;
+    left: 0;
+    height: 100%;
+    width: 24px;
+    margin-left: 24px;
+    margin-right: 24px;
+    display: inline-block;
+    float: left;
+}
+
+.coolbox-item-img-container>img{
+    position: relative;
+    top: 12px;
+    width: 18px;
+    margin-left: 3px;
+    left: 0;
+}
+
+.coolbox-item-info{
+    position: relative;
+    top: 0;
+    width: calc(100% - 80px);
+    margin-left: 3px;
+    right: 0;
+    display: inline-block;
+    float: right;
+    border-bottom: 1px solid #bbb;
+}
+
+.no-border{
+    border-bottom: none !important;
+}
+
+.coolbox-title{
+    display: inline-block;
+    margin-top: 15px;
+    margin-bottom: 14px;
+    color: #333;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.coolbox-description{
+    display: inline-block;
+    margin-top: 15px;
+    margin-bottom: 14px;
+    color: #bbb;
+    font-size: 12px;
+}
+
+.sidebar-info{
+    position: relative;
+    width: 100%;
+    top: 0;
+}
+
+.item-sidebar-info{
+    position: relative;
+    top: 0;
+    width: 100%;
+    padding-left: 24px;
+    padding-right: 24px;
+    right: 0;
+    display: inline-block;
+    float: right;
+}
+
+.sidebar-infos-heading{
+    padding-left: 24px;
+    padding-right: 24px;
+    color: #777;
+    font-weight: normal;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.item-sidebar-title{
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.item-sidebar-description{
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+input{
+    background-color: transparent;
+    color: #fff;
+}
+
+.material-input-container>button{
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    float: right;
+    top: 12px;
+    right: 10px;
+    background-color: transparent;
+    border: transparent;
+    outline: none;
+}
+
+.material-input-container>button>img{
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 0;
+    right: 0;
+}
+
+.sidebar-header{
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 80px;
+    background-color: rgb(66, 133, 244);
+}
+
+.container{
+    background-color: rgb(66, 133, 244) !important;
+    margin: 0 !important;
+}
+
+.material-input-container{
+    position: relative;
+    top: 35px;
+}
+
 #map{
     width: 100%;
     height: 100%;
 }
 
 .mapMarker {
-    border: 0px;
+    border: 0;
     background-color: rgba(0, 0, 0, 0);
 }
 

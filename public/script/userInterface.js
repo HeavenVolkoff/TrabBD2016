@@ -234,6 +234,25 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         leaflet: map,
         layers: layers
       }
+    },
+    sideBar: function (app, data) {
+      app.socket.once('getRegionUnitsDistribution', function(data){
+        console.log(data);
+      })
+      app.socket.once('getRegionScoreByCategory', function(data){
+        console.log(data);
+      })
+      app.socket.once('getRegionDistributionByType', function(data){
+        console.log(data);
+      })
+      app.socket.once('getGovernmentControlledUnits', function(data){
+        console.log(data);
+      })
+      app.socket.once('getAvgUnitCountByOwner', function(data){
+        console.log(data);
+      })
+
+      app.socket.emit('getCountryStatistics');
     }
   }
 
