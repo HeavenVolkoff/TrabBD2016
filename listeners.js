@@ -83,7 +83,7 @@ module.exports = (dbPool, query) => {
         }).then(([rows]) => {
           socket.emit('getRegionScoreByCategory', rows)
         }),
-        dbPool.getConnection().then((conn) => {//TODO: Fix this query
+        dbPool.getConnection().then((conn) => { // TODO: Fix this query
           let res = conn.query(query.getRegionDistributionByType)
           conn.release()
           return res

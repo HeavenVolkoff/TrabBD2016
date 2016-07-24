@@ -97,14 +97,14 @@ window.define(function () {
       return target
     },
 
-    elementFromString: function elementFromString(str){
-      var element;
+    elementFromString: function elementFromString (str) {
+      var element
 
-      divElement.innerHTML = str;
-      element = divElement.firstChild;
-      divElement.removeChild(element);
+      divElement.innerHTML = str
+      element = divElement.firstChild
+      divElement.removeChild(element)
 
-      return element;
+      return element
     }
   }
 
