@@ -284,20 +284,20 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             regions[data[count].regiao] = {
               count: 0,
               value: 0
-            };
+            }
           }
           $.querySelector('#sidebar-region-distribution-score-' + data[count].regiao).appendChild(_.elementFromString(_.format(
             elements.quickInfoItem,
             'sidebar-region-distribution-score-' + data[count].regiao + '-item-' + count,
             '• ' + data[count].categorias + ':',
             parseFloat(data[count].notas).toFixed(2))))
-          regions[data[count].regiao].count++;
-          regions[data[count].regiao].value += parseFloat(data[count].notas);
+          regions[data[count].regiao].count++
+          regions[data[count].regiao].value += parseFloat(data[count].notas)
         }
-        for(var region in regions){
-          if(regions.hasOwnProperty(region)){
-            regions[region].value /= regions[region].count;
-            $.querySelector('#sidebar-region-distribution-score-' + region + ' .item-sidebar-description').innerText = (regions[region].value).toFixed(2)+' / 10 ▼';
+        for (var region in regions) {
+          if (regions.hasOwnProperty(region)) {
+            regions[region].value /= regions[region].count
+            $.querySelector('#sidebar-region-distribution-score-' + region + ' .item-sidebar-description').innerText = (regions[region].value).toFixed(2) + ' / 10 ▼'
           }
         }
       })
@@ -308,12 +308,12 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           elements.quickInfoItem,
           'sidebar-government-controlled-units-item',
           'Governo:',
-          ((data[0].governo/data[0].total)*100).toFixed(2) + '%')))
+          ((data[0].governo / data[0].total) * 100).toFixed(2) + '%')))
         regionDistributionTitle.appendChild(_.elementFromString(_.format(
           elements.quickInfoItem,
           'sidebar-other-controlled-units-item',
           'Não Governamental:',
-          (((data[0].total-data[0].governo)/data[0].total)*100).toFixed(2) + '%')))
+          (((data[0].total - data[0].governo) / data[0].total) * 100).toFixed(2) + '%')))
       })
       app.socket.once('getUnityCount', function (data) {
         container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-unit-count-title', 'Quantidade de Unidades de Saúde')))
@@ -322,7 +322,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           elements.quickInfoItem,
           'sidebar-unit-count-title-item',
           'Total:',
-          data[0].count+' unidades')))
+          data[0].count + ' unidades')))
       })
 
       app.socket.emit('getCountryStatistics')

@@ -60,13 +60,6 @@ FROM localizacoes
   RIGHT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
   LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id;
 
--- unityTelephones
-SELECT telefones.numero
-  FROM
-    telefones
-  LEFT JOIN unidades_saude ON unidades_saude.id = telefones.unidade_saude_id
-  WHERE unidades_saude.id = ?;
-
 -- getRegionUnitsDistribution
 SELECT regioes.nome AS regiao, COUNT(unidades_saude.id) AS numero_unidades
   FROM unidades_saude
@@ -178,38 +171,39 @@ INNER JOIN tipos_unidade ON tipos_unidade.id = unidades.tipo_unidade_id
 GROUP BY tipos_unidade.tipo;
 
 -- SearchBar
+SET @param = ? COLLATE utf8_unicode_ci;
 SELECT *
 FROM (
-  SELECT 'Location' AS tipo, ufs.sigla
+  SELECT 'Location' AS tipo, ufs.sigla AS id, ufs.nome AS nome, '' AS other
   FROM ufs
-  WHERE ufs.sigla LIKE ?
-  LIMIT 1
+  WHERE ufs.sigla LIKE @param OR ufs.nome LIKE @param
+  LIMIT 2
 )AS locations
 UNION
 SELECT *
 FROM (
-  SELECT 'Unity-nome' AS tipo, unidades_saude.id AS id
+  SELECT 'Unit-nome' AS tipo, unidades_saude.id AS id, unidades_saude.nome_fantansia AS nome, '' AS other
   FROM unidades_saude
   WHERE
-    unidades_saude.nome_fantansia LIKE ?
-  LIMIT 1
+    unidades_saude.nome_fantansia LIKE @param
+  LIMIT 3
 )AS unit_nome
 UNION
 SELECT *
 FROM (
-  SELECT 'Unity-razao-social' AS tipo, unidades_saude.id AS id
+  SELECT 'Unit-razao-social' AS tipo, unidades_saude.id AS id, unidades_saude.nome_fantansia AS nome, unidades_saude.razao_social AS other
   FROM unidades_saude
   WHERE
-    unidades_saude.razao_social LIKE ?
-  LIMIT 1
+    unidades_saude.razao_social LIKE @param
+  LIMIT 3
 )AS unit_nome
 UNION
 SELECT *
 FROM (
-  SELECT 'Unity-telefone' AS tipo, unidades_saude.id AS id
+  SELECT 'Unit-telefone' AS tipo, unidades_saude.id AS id, unidades_saude.nome_fantansia AS nome, telefones.numero AS other
   FROM unidades_saude
   INNER JOIN telefones ON unidades_saude.id = telefones.unidade_saude_id
   WHERE
-    telefones.numero LIKE ?
-  LIMIT 1
+    telefones.numero LIKE @param
+  LIMIT 3
 )AS unit_nome
