@@ -49,10 +49,18 @@ Analise dos dados disponíveis no [Portal Brasileiro de Dados Abertos][dadosgov]
 + Execute o arquivo previamente salvo na Schema criada no passo anterior.
 
 ### Bibliotecas externas NPM:
-No terminal faca `cd` na pasta raiz do projeto e execute:
+No terminal faça `cd` na pasta raiz do projeto e execute:
 ```bash
-npm install
+$> npm install
 ```
+
+### Execução:
+No terminal faça `cd` na pasta raiz do projeto e execute:
+```bash
+$> node main
+```
+>Linux e Mac podem necessitar de `sudo` devido ao uso da porta `80` e `443`
+><br>Programas que podem impossibilitar a execução do servidor `Skype`, `ISS Server(Windows)`, `Apache`
 
 ## Estrutura do Projeto
 ```
