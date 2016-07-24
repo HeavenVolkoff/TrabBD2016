@@ -1,42 +1,67 @@
 window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
   'use strict'
 
+  // UI global variables
   var $, promiseErrorListener, UI
-
   $ = document
   promiseErrorListener = function (e) { console.error(e) }
 
+  /**
+   * User Interface Object
+   *
+   * Guidelines:
+   * - Each property must reference a html element and have a name derived from it
+   * - Each property must be a function or object
+   * - In case of a function it might receive two parameters (app, data),
+   *   and should return an object to take it's place after execution
+   * - Exception cases are for meta properties (e.g: id) which must be an object
+   * @type {{id: {map: string}, map: UI.map}}
+   */
   UI = {
     id: {
       map: 'map'
     },
 
+    /**
+     * Leaflet map element
+     *
+     * @type {{
+     *  layers: {
+     *    tile: TileLayer,
+     *    perMarkers: Object,
+     *    stateMarkers: LayerGroup<Leaflet.marker>,
+     *    stateGeoJson: {}
+     *    statesGeoJson: GeoJSON,
+     *  }
+     *  leaflet: Map,
+     * }}
+     */
     map: function (app, data) {
-      var map,
-        temp,
-        layers,
-        counter,
-        listeners,
-        mapElement,
-        statesAcronyms,
-        stateLayerHover,
-        stateLayerDefault,
-        stateLayerHoverStyleNegative
+      var map, temp, layers, counter, listeners, mapElement, statesAcronyms,
+        stateLayerHoverStyle, stateLayerDefaultStyle, stateLayerHoverStyleNegative
 
+      // Cache states acronyms from data
       statesAcronyms = data.brasilInfo.statesAcronyms
 
-      stateLayerHover = data.leaflet.layers.style.stateLayerHover
-      stateLayerDefault = data.leaflet.layers.style.stateLayerDefault
+      // === Cache layer style from data and generate undo-style for hover style modifications ===
+      stateLayerHoverStyle = data.leaflet.layers.style.stateLayerHover
+      stateLayerDefaultStyle = data.leaflet.layers.style.stateLayerDefault
       stateLayerHoverStyleNegative = {}
-      for (temp in stateLayerHover) {
-        if (stateLayerHover.hasOwnProperty(temp) &&
-          stateLayerDefault.hasOwnProperty(temp)
+      for (temp in stateLayerHoverStyle) {
+        if (stateLayerHoverStyle.hasOwnProperty(temp) &&
+          stateLayerDefaultStyle.hasOwnProperty(temp)
         ) {
-          stateLayerHoverStyleNegative[temp] = stateLayerDefault[temp]
+          stateLayerHoverStyleNegative[temp] = stateLayerDefaultStyle[temp]
         }
       }
 
+      // === Event functions listeners ===
       listeners = {
+        /**
+         * Listener to click event on state layer
+         * Change view to clicked state and request state health unit data from server
+         * @param event {MouseEvent}
+         */
         stateLayerClick: function zoomToFeature (event) {
           map.options.minZoom = 0
           map.options.maxZoom = 18
@@ -44,27 +69,53 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
 
           console.log(event)
 
-          map.once("moveend zoomend", function () {
+          map.once('moveend zoomend', function () {
             map.setMaxBounds(event.target.getBounds())
             map.options.minZoom = map.getZoom()
           })
 
           map.fitBounds(event.target.getBounds())
-          // TODO requisitar informações do estado e pontos do estado
+        // TODO requisitar informações do estado e pontos do estado
         },
+
+        /**
+         * Listener to mouseout event on state layer
+         * Reset state layer hover style (set generated undo-style)
+         * @param event {MouseEvent}
+         */
         stateLayerMouseOut: function resetHighlight (event) {
           event.target.setStyle(stateLayerHoverStyleNegative)
         },
+
+        /**
+         * Listener to mouseover event on state layer
+         * Change state layer to hover style
+         * @param event {MouseEvent}
+         */
         stateLayerMouseOver: function highlightFeature (event) {
           var layer = event.target
-          layer.setStyle(stateLayerHover)
+          layer.setStyle(stateLayerHoverStyle)
           if (!(Leaflet.Browser.ie || Leaflet.Browser.opera)) {
             layer.bringToFront()
           }
         },
+
+        /**
+         * Listener to state geometries ajax requests
+         * Add state geometry to state GeoJson layer
+         * (stateGeoJsonFeatureListener will be immediately called after addition with the generated layer)
+         * @param stateGeoJson {Object}
+         */
         stateGeoJsonAjaxRequest: function (stateGeoJson) {
           layers.statesGeoJson.addData(stateGeoJson)
         },
+
+        /**
+         * Listener to state GeoJson features (which are the properties of each geometry added to the layer)
+         * Cache generated layer and assign event listeners to it
+         * @param feature {Leaflet.GeoJSON}
+         * @param layer {Leaflet.ILayer}
+         */
         stateGeoJsonFeatureListener: function onEachFeature (feature, layer) {
           layers.stateGeoJson[feature.properties.sigla] = layer
           layer.on({
@@ -73,15 +124,26 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             click: listeners.stateLayerClick
           })
         },
+
+        /**
+         * Listener to healthUnitsPerState marker data
+         * Generate marker and add it to stateMarker layerGroup
+         *
+         * @param stateName {String}
+         * @param stateGeometryLayer {Leaflet.ILayer}
+         * @param healthUnitQuantity {Number}
+         * @param iconSizeCssClass {Number}
+         */
         stateMarkerDataListener: function (stateName, stateGeometryLayer, healthUnitQuantity, iconSizeCssClass) {
           var style
           if (stateGeometryLayer instanceof Promise) {
             stateGeometryLayer.then(function () {
               listeners.stateMarkerDataListener(stateName, stateGeometryLayer, healthUnitQuantity, iconSizeCssClass)
             }).catch(promiseErrorListener)
+            return
           }
 
-          style = _.assign({}, stateLayerDefault)
+          style = _.assign({}, stateLayerDefaultStyle)
           style.fillColor = data.leaflet.layers.style.colorsPerState[iconSizeCssClass]
           stateGeometryLayer.setStyle(style)
 
@@ -100,21 +162,23 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         }
       }
 
-      console.log('listeners ok')
+      console.log('listeners declaration ok')
 
+      // Cache map layer objects, for easy access
       layers = {
         tile: Leaflet.tileLayer(data.leaflet.provider, data.leaflet.options),
         perMarkers: {},
         stateMarkers: Leaflet.layerGroup(),
         statesGeoJson: Leaflet.geoJson(null, {
-          style: stateLayerDefault,
+          style: stateLayerDefaultStyle,
           onEachFeature: listeners.stateGeoJsonFeatureListener
         }),
         stateGeoJson: {}
       }
 
-      console.log('layers ok')
+      console.log('layers creation ok')
 
+      // Construct Leaflet map and center to Brasil
       mapElement = $.querySelector('#' + UI.id.map)
       map = Leaflet.map(mapElement, {
         layers: [
@@ -129,16 +193,17 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
       })
       map.setMaxBounds(map.getBounds())
 
-      console.log('maps ok')
+      console.log('leaflet map creation ok')
 
+      // Ajax requests of states geometries
       for (counter = 0; counter < statesAcronyms.length; counter++) {
         layers.stateGeoJson[statesAcronyms[counter]] =
-            Ajax.get(_.format('data/GeoJson/states/{0}.json', statesAcronyms[counter]), 'json')
-              .then(listeners.stateGeoJsonAjaxRequest)
-              .catch(promiseErrorListener)
+          Ajax.get(_.format('data/GeoJson/states/{0}.json', statesAcronyms[counter]), 'json')
+            .then(listeners.stateGeoJsonAjaxRequest)
+            .catch(promiseErrorListener)
       }
 
-      console.log('ajax ok')
+      console.log('states geometries ajax request ok')
 
       // Wait server healthUnitsPerState query response
       app.socket.once(

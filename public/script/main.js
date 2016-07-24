@@ -15,7 +15,7 @@ window.require.config({
 
 window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
   'use strict'
-  var elementName, elementSetup, app
+  var elementName, app
 
   /**
    * App object
@@ -40,9 +40,8 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
 
       // Exec each UI element set-up function
       for (elementName in UI) {
-        elementSetup = UI[elementName]
-        if (UI.hasOwnProperty(elementName) && typeof elementSetup === 'function') {
-          UI[elementName] = elementSetup(app, data)
+        if (UI.hasOwnProperty(elementName) && typeof UI[elementName] === 'function') {
+          UI[elementName] = UI[elementName](app, data)
         }
       }
 
