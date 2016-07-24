@@ -278,12 +278,12 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
               elements.quickInfoItemWithHover,
               'sidebar-region-distribution-score-' + data[count].regiao,
               data[count].regiao,
-              parseFloat(data[count].total).toFixed(2)+' / 10')))
+              parseFloat(data[count].total).toFixed(2) + ' / 10')))
           }
-          $.querySelector('#sidebar-region-distribution-score-'+data[count].regiao).appendChild(_.elementFromString(_.format(
+          $.querySelector('#sidebar-region-distribution-score-' + data[count].regiao).appendChild(_.elementFromString(_.format(
             elements.quickInfoItem,
-            'sidebar-region-distribution-score-'+data[count].regiao+'-item-'+count,
-            '• '+data[count].categorias+':',
+            'sidebar-region-distribution-score-' + data[count].regiao + '-item-' + count,
+            '• ' + data[count].categorias + ':',
             parseFloat(data[count].notas).toFixed(2))))
         }
       })
