@@ -75,14 +75,32 @@ SELECT regioes.nome AS regiao, COUNT(unidades_saude.id) AS numero_unidades
   GROUP BY regioes.nome;
 
 -- getRegionScoreByCategory
-SELECT regioes.nome AS regiao, categorias_avaliacoes.nome AS categorias, (AVG(notas.valor)/3)*10 AS notas
-  FROM unidades_saude
-  INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
-  INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
-  INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
-  INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
-  INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
-  GROUP BY regioes.nome, categorias_avaliacoes.nome;
+SELECT porCategoria.regiao, porCategoria.categorias, porCategoria.notas, geral.total
+  FROM (
+    SELECT
+      regioes.nome                AS regiao,
+      categorias_avaliacoes.nome  AS categorias,
+      (AVG(notas.valor) / 3) * 10 AS notas
+    FROM unidades_saude
+      INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+      INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
+      INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
+      INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+      INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+    GROUP BY regioes.nome, categorias_avaliacoes.nome
+  ) AS porCategoria
+  INNER JOIN (
+    SELECT
+      regioes.nome                AS regiao,
+      (AVG(notas.valor) / 3) * 10 AS total
+    FROM unidades_saude
+      INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+      INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
+      INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
+      INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+      INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+    GROUP BY regioes.nome
+  ) AS geral  ON geral.regiao = porCategoria.regiao;
 
 -- getRegionDistributionByType
 SELECT regioes.nome AS regiao, tipos_unidade.tipo AS tipo, COUNT(unidades_saude.id) AS numero_unidades

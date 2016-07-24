@@ -74,35 +74,35 @@ module.exports = (dbPool, query) => {
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getRegionUnitsDistribution', {rows: rows})
+          socket.emit('getRegionUnitsDistribution', rows)
         }),
         dbPool.getConnection().then((conn) => {
           let res = conn.query(query.getRegionScoreByCategory)
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getRegionScoreByCategory', {rows: rows})
+          socket.emit('getRegionScoreByCategory', rows)
         }),
-        //dbPool.getConnection().then((conn) => {
-        //  let res = conn.query(query.getRegionDistributionByType)
-        //  conn.release()
-        //  return res
-        //}).then(([rows]) => {
-        //  socket.emit('getRegionDistributionByType', {rows: rows})
-        //}),
+        dbPool.getConnection().then((conn) => {//TODO: Fix this query
+          let res = conn.query(query.getRegionDistributionByType)
+          conn.release()
+          return res
+        }).then(([rows]) => {
+          socket.emit('getRegionDistributionByType', rows)
+        }),
         dbPool.getConnection().then((conn) => {
           let res = conn.query(query.getGovernmentControlledUnits)
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getGovernmentControlledUnits', {rows: rows})
+          socket.emit('getGovernmentControlledUnits', rows)
         }),
         dbPool.getConnection().then((conn) => {
           let res = conn.query(query.getAvgUnitCountByOwner)
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getAvgUnitCountByOwner', {rows: rows})
+          socket.emit('getAvgUnitCountByOwner', rows)
         })
       ]).catch((err) => {
         log(err)

@@ -1,6 +1,7 @@
 window.define(function () {
   'use strict'
   var formatStringRegexp = /\{([0-9]+)}/gm
+  var divElement = document.createElement('div')
 
   var util = {
     format: function formatString () {
@@ -94,6 +95,16 @@ window.define(function () {
         }
       }
       return target
+    },
+
+    elementFromString: function elementFromString(str){
+      var element;
+
+      divElement.innerHTML = str;
+      element = divElement.firstChild;
+      divElement.removeChild(element);
+
+      return element;
     }
   }
 

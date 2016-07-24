@@ -19,7 +19,8 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
    */
   UI = {
     id: {
-      map: 'map'
+      map: 'map',
+      sidebarContent: 'sidebar-content'
     },
 
     /**
@@ -234,20 +235,66 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
       }
     },
     sideBar: function (app, data) {
+      var elements = {
+        quickInfoHeader: null,
+
+        quickInfoItem: null
+      };
+      var container = $.querySelector('#'+UI.id.sidebarContent)
+
+      var elementsRequest = Promise.all([
+        Ajax.get('import/quickInfoHeaderFragment.html', 'text'),
+        Ajax.get('import/quickInfoItemFragment.html', 'text'),
+        Ajax.get('import/quickInfoItemFragmentWithHover.html', 'text')
+      ]).then(function(htmlArray){
+        elements.quickInfoHeader = htmlArray[0]
+        elements.quickInfoItem = htmlArray[1]
+        elements.quickInfoItemWithHover = htmlArray[2]
+      });
+
       app.socket.once('getRegionUnitsDistribution', function(data){
-        console.log(data);
+        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-region-distribution-title', 'Unidades de Saúde por Região')));
+        var regionDistributionTitle = $.querySelector('#sidebar-region-distribution-title')
+        var totalUnits = 0;
+        var count;
+        for(count = 0; count<data.length; count++){
+          totalUnits += data[count].numero_unidades;
+        }
+        for(count = 0; count<data.length; count++){
+          regionDistributionTitle.appendChild(_.elementFromString(_.format(
+            elements.quickInfoItem,
+            'sidebar-region-distribution-'+data[count].regiao,
+            data[count].regiao+':',
+            (data[count].numero_unidades/totalUnits*100).toFixed(2)+'%')))
+        }
       })
       app.socket.once('getRegionScoreByCategory', function(data){
-        console.log(data);
+        console.log(data)
+        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-region-distribution-score-title', 'Notas por Região')));
+        var regionDistributionTitle = $.querySelector('#sidebar-region-distribution-score-title')
+        for(var count = 0; count<data.length; count++){
+          if(!$.querySelector('#sidebar-region-distribution-score-'+data[count].regiao)){
+            regionDistributionTitle.appendChild(_.elementFromString(_.format(
+              elements.quickInfoItemWithHover,
+              'sidebar-region-distribution-score-'+data[count].regiao,
+              data[count].regiao,
+              parseFloat(data[count].total).toFixed(2)+'%')))
+          }
+          $.querySelector('#sidebar-region-distribution-score-'+data[count].regiao).appendChild(_.elementFromString(_.format(
+            elements.quickInfoItem,
+            'sidebar-region-distribution-score-'+data[count].regiao+'-item-'+count,
+            '• '+data[count].categorias+':',
+            parseFloat(data[count].notas).toFixed(2)+'%')))
+        }
       })
       app.socket.once('getRegionDistributionByType', function(data){
-        console.log(data);
+        console.log(data)
       })
       app.socket.once('getGovernmentControlledUnits', function(data){
-        console.log(data);
+        console.log(data)
       })
       app.socket.once('getAvgUnitCountByOwner', function(data){
-        console.log(data);
+        console.log(data)
       })
 
       app.socket.emit('getCountryStatistics');
