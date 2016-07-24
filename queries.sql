@@ -75,43 +75,26 @@ SELECT regioes.nome AS regiao, COUNT(unidades_saude.id) AS numero_unidades
   GROUP BY regioes.nome;
 
 -- getRegionScoreByCategory
-SELECT porCategoria.regiao, porCategoria.categorias, porCategoria.notas, geral.total
+SELECT
+      regioes.nome AS regiao,
+      categorias_avaliacoes.nome AS categorias,
+      notasPorCatId.notas
   FROM (
     SELECT
-      regioes.nome                AS regiao,
-      categorias_avaliacoes.nome  AS categorias,
-      (AVG(notas.valor) / 3) * 10 AS notas
-    FROM unidades_saude
-      INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
-      INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
-      INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
-      INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
-      INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
-    GROUP BY regioes.nome, categorias_avaliacoes.nome
-  ) AS porCategoria
-  INNER JOIN (
-    SELECT
-      regioes.nome                AS regiao,
-      (AVG(notas.valor) / 3) * 10 AS total
-    FROM unidades_saude
-      INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
-      INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
-      INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
-      INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
-      INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
-    GROUP BY regioes.nome
-  ) AS geral  ON geral.regiao = porCategoria.regiao;
-
--- getRegionDistributionByType
-SELECT regioes.nome AS regiao, tipos_unidade.tipo AS tipo, COUNT(unidades_saude.id) AS numero_unidades
-  FROM unidades_saude
-  INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
-  INNER JOIN regioes ON localizacoes.regiao_id = regioes.id
-  INNER JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id
-  GROUP BY regioes.nome, tipos_unidade.tipo;
+          localizacoes.regiao_id                AS regiao_id,
+          nota_unidade_saude.categoria_id  AS categoria_id,
+          (AVG(notas.valor) / 3) * 10 AS notas
+        FROM unidades_saude
+          INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
+          INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
+          INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+        GROUP BY localizacoes.regiao_id, nota_unidade_saude.categoria_id
+  ) AS notasPorCatId
+  INNER JOIN regioes ON notasPorCatId.regiao_id = regioes.id
+  INNER JOIN categorias_avaliacoes ON notasPorCatId.categoria_id = categorias_avaliacoes.id;
 
 -- getGovernmentControlledUnits
-SELECT governo.count AS Governo, total.count AS Total
+SELECT governo.count AS governo, total.count AS total
   FROM (
       SELECT COUNT(unidades_saude.id) as count
       FROM unidades_saude
@@ -122,14 +105,9 @@ SELECT governo.count AS Governo, total.count AS Total
       FROM unidades_saude
     ) AS total;
 
--- getAvgUnitCountByOwner
-SELECT AVG(unidades_mantenedora.count) AS Count
-  FROM (
-    SELECT unidades_saude.mantenedora_id AS id, COUNT(unidades_saude.id) AS count
-    FROM unidades_saude
-    GROUP BY unidades_saude.mantenedora_id
-  ) AS unidades_mantenedora
-  GROUP BY NULL;
+-- getUnityCount
+SELECT COUNT(unidades_saude.id) AS count
+  FROM unidades_saude;
 
 -- healthUnityInfo
 SELECT
