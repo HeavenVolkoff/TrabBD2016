@@ -235,8 +235,6 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
       }
     },
     sideBar: function (app, data) {
-      var elements, container
-
       elements = {
         quickInfoHeader: null,
         quickInfoItem: null
@@ -280,13 +278,13 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
               elements.quickInfoItemWithHover,
               'sidebar-region-distribution-score-' + data[count].regiao,
               data[count].regiao,
-              parseFloat(data[count].total).toFixed(2) + '%')))
+              parseFloat(data[count].total).toFixed(2)+' / 10')))
           }
-          $.querySelector('#sidebar-region-distribution-score-' + data[count].regiao).appendChild(_.elementFromString(_.format(
+          $.querySelector('#sidebar-region-distribution-score-'+data[count].regiao).appendChild(_.elementFromString(_.format(
             elements.quickInfoItem,
-            'sidebar-region-distribution-score-' + data[count].regiao + '-item-' + count,
-            '• ' + data[count].categorias + ':',
-            parseFloat(data[count].notas).toFixed(2) + '%')))
+            'sidebar-region-distribution-score-'+data[count].regiao+'-item-'+count,
+            '• '+data[count].categorias+':',
+            parseFloat(data[count].notas).toFixed(2))))
         }
       })
       app.socket.once('getRegionDistributionByType', function (data) {
