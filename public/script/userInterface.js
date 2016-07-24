@@ -67,15 +67,13 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           map.options.maxZoom = 18
           map.setMaxBounds(null)
 
-          console.log(event)
-
           map.once('moveend zoomend', function () {
             map.setMaxBounds(event.target.getBounds())
             map.options.minZoom = map.getZoom()
           })
 
           map.fitBounds(event.target.getBounds())
-        // TODO requisitar informações do estado e pontos do estado
+        // TODO: request state health unit markers
         },
 
         /**
