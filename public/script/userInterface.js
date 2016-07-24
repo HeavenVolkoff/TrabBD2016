@@ -272,32 +272,57 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         }
       })
       app.socket.once('getRegionScoreByCategory', function (data) {
-        console.log(data)
-        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-region-distribution-score-title', 'Notas por Região')))
+        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-region-distribution-score-title', 'Média das Notas por Região')))
         var regionDistributionTitle = $.querySelector('#sidebar-region-distribution-score-title')
+        var regions = {}
         for (var count = 0; count < data.length; count++) {
           if (!$.querySelector('#sidebar-region-distribution-score-' + data[count].regiao)) {
             regionDistributionTitle.appendChild(_.elementFromString(_.format(
               elements.quickInfoItemWithHover,
               'sidebar-region-distribution-score-' + data[count].regiao,
-              data[count].regiao,
-              parseFloat(data[count].total).toFixed(2) + ' / 10')))
+              data[count].regiao)))
+            regions[data[count].regiao] = {
+              count: 0,
+              value: 0
+            }
           }
           $.querySelector('#sidebar-region-distribution-score-' + data[count].regiao).appendChild(_.elementFromString(_.format(
             elements.quickInfoItem,
             'sidebar-region-distribution-score-' + data[count].regiao + '-item-' + count,
             '• ' + data[count].categorias + ':',
             parseFloat(data[count].notas).toFixed(2))))
+          regions[data[count].regiao].count++
+          regions[data[count].regiao].value += parseFloat(data[count].notas)
+        }
+        for (var region in regions) {
+          if (regions.hasOwnProperty(region)) {
+            regions[region].value /= regions[region].count
+            $.querySelector('#sidebar-region-distribution-score-' + region + ' .item-sidebar-description').innerText = (regions[region].value).toFixed(2) + ' / 10 ▼'
+          }
         }
       })
-      app.socket.once('getRegionDistributionByType', function (data) {
-        console.log(data)
-      })
       app.socket.once('getGovernmentControlledUnits', function (data) {
-        console.log(data)
+        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-government-controlled-units-title', 'Unidades de Saúde por Administrador')))
+        var regionDistributionTitle = $.querySelector('#sidebar-government-controlled-units-title')
+        regionDistributionTitle.appendChild(_.elementFromString(_.format(
+          elements.quickInfoItem,
+          'sidebar-government-controlled-units-item',
+          'Governo:',
+          ((data[0].governo / data[0].total) * 100).toFixed(2) + '%')))
+        regionDistributionTitle.appendChild(_.elementFromString(_.format(
+          elements.quickInfoItem,
+          'sidebar-other-controlled-units-item',
+          'Não Governamental:',
+          (((data[0].total - data[0].governo) / data[0].total) * 100).toFixed(2) + '%')))
       })
-      app.socket.once('getAvgUnitCountByOwner', function (data) {
-        console.log(data)
+      app.socket.once('getUnityCount', function (data) {
+        container.appendChild(_.elementFromString(_.format(elements.quickInfoHeader, 'sidebar-unit-count-title', 'Quantidade de Unidades de Saúde')))
+        var regionDistributionTitle = $.querySelector('#sidebar-unit-count-title')
+        regionDistributionTitle.appendChild(_.elementFromString(_.format(
+          elements.quickInfoItem,
+          'sidebar-unit-count-title-item',
+          'Total:',
+          data[0].count + ' unidades')))
       })
 
       app.socket.emit('getCountryStatistics')

@@ -2,6 +2,7 @@ use TrabalhoBD;
 
 #Drop existing functions
 DROP FUNCTION IF EXISTS generatePhone;
+DROP FUNCTION IF EXISTS generateStateName;
 
 #Create functions
 CREATE FUNCTION generatePhone()
@@ -14,6 +15,44 @@ CREATE FUNCTION generatePhone()
     '-',
     LPAD(FLOOR(RAND() * 9999), 4, '0')
   );
+
+CREATE FUNCTION generateStateName(sigla varchar(255))
+	RETURNS VARCHAR(255)
+	BEGIN
+		DECLARE nomeEstado VARCHAR(255);
+		CASE sigla
+			WHEN 'RJ' THEN SET nomeEstado = 'Rio de Janeiro';
+			WHEN 'AC' THEN SET nomeEstado = 'Acre';
+			WHEN 'AL' THEN SET nomeEstado = 'Alagoas';
+			WHEN 'AP' THEN SET nomeEstado = 'Amapá';
+			WHEN 'AM' THEN SET nomeEstado = 'Amazonas';
+			WHEN 'BA' THEN SET nomeEstado = 'Bahia';
+			WHEN 'CE' THEN SET nomeEstado = 'Ceará';
+			WHEN 'DF' THEN SET nomeEstado = 'Distrito Federal';
+			WHEN 'ES' THEN SET nomeEstado = 'Espírito Santo';
+			WHEN 'GO' THEN SET nomeEstado = 'Goiás';
+			WHEN 'MA' THEN SET nomeEstado = 'Maranhão';
+			WHEN 'MT' THEN SET nomeEstado = 'Mato Grosso';
+			WHEN 'MS' THEN SET nomeEstado = 'Mato Grosso do Sul';
+			WHEN 'MG' THEN SET nomeEstado = 'Minas Gerais';
+			WHEN 'PA' THEN SET nomeEstado = 'Pará';
+			WHEN 'PB' THEN SET nomeEstado = 'Paraíba';
+			WHEN 'PR' THEN SET nomeEstado = 'Paraná';
+			WHEN 'PE' THEN SET nomeEstado = 'Pernambuco';
+			WHEN 'PI' THEN SET nomeEstado = 'Piauí';
+			WHEN 'RJ' THEN SET nomeEstado = 'Rio de Janeiro';
+			WHEN 'RN' THEN SET nomeEstado = 'Rio Grande do Norte';
+			WHEN 'RS' THEN SET nomeEstado = 'Rio Grande do Sul';
+			WHEN 'RO' THEN SET nomeEstado = 'Rondônia';
+			WHEN 'RR' THEN SET nomeEstado = 'Roraima';
+			WHEN 'SC' THEN SET nomeEstado = 'Santa Catarina';
+			WHEN 'SP' THEN SET nomeEstado = 'São Paulo';
+			WHEN 'SE' THEN SET nomeEstado = 'Sergipe';
+			WHEN 'TO' THEN SET nomeEstado = 'Tocantins';
+			ELSE SET nomeEstado = 'Desconhecido';
+		END CASE;
+	RETURN nomeEstado;
+	END;
 
 #Drop tables
 DROP TABLE IF EXISTS nota_unidade_saude;
@@ -74,7 +113,8 @@ CREATE TABLE regioes(
 );
 CREATE TABLE ufs(
 	id BINARY(16) PRIMARY KEY,
-	sigla VARCHAR(255) NULL
+	sigla VARCHAR(255) NULL,
+	nome VARCHAR(255) NULL
 );
 CREATE TABLE bairros(
 	id BINARY(16) PRIMARY KEY,
@@ -208,10 +248,11 @@ INSERT IGNORE INTO regioes (id, nome)
     FROM cnes_ativos
     WHERE
       cnes_ativos.regiao COLLATE utf8_unicode_ci <> '' COLLATE utf8_unicode_ci;
-INSERT IGNORE INTO ufs (id, sigla)
+INSERT IGNORE INTO ufs (id, sigla, nome)
 	SELECT DISTINCT
     UNHEX(MD5(cnes_ativos.uf)) AS 'id',
-		cnes_ativos.uf AS 'sigla'
+		cnes_ativos.uf AS 'sigla',
+		generateStateName(cnes_ativos.uf) AS 'nome'
     FROM cnes_ativos
     WHERE
       cnes_ativos.uf COLLATE utf8_unicode_ci <> '' COLLATE utf8_unicode_ci;

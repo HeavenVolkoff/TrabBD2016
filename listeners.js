@@ -83,13 +83,6 @@ module.exports = (dbPool, query) => {
         }).then(([rows]) => {
           socket.emit('getRegionScoreByCategory', rows)
         }),
-        dbPool.getConnection().then((conn) => { // TODO: Fix this query
-          let res = conn.query(query.getRegionDistributionByType)
-          conn.release()
-          return res
-        }).then(([rows]) => {
-          socket.emit('getRegionDistributionByType', rows)
-        }),
         dbPool.getConnection().then((conn) => {
           let res = conn.query(query.getGovernmentControlledUnits)
           conn.release()
@@ -98,11 +91,11 @@ module.exports = (dbPool, query) => {
           socket.emit('getGovernmentControlledUnits', rows)
         }),
         dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getAvgUnitCountByOwner)
+          let res = conn.query(query.getUnityCount)
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getAvgUnitCountByOwner', rows)
+          socket.emit('getUnityCount', rows)
         })
       ]).catch((err) => {
         log(err)
