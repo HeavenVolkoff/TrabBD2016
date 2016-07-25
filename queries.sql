@@ -52,12 +52,12 @@ SELECT
   localizacoes.latitude       AS latitude,
   localizacoes.longitude      AS longitude
 FROM localizacoes
-  RIGHT JOIN (
+  INNER JOIN (
                SELECT ufs.id
                FROM ufs
                WHERE ufs.sigla = ?
              ) AS ufs_state ON ufs_state.id = localizacoes.uf_id
-  RIGHT JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
+  INNER JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
   LEFT JOIN tipos_unidade ON unidades_saude.tipo_unidade_id = tipos_unidade.id;
 
 -- getRegionUnitsDistribution
