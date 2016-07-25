@@ -25,7 +25,7 @@ module.exports = (dbPool, query) => {
         conn.release()
         return rows
       }).then(function ([rows]) {
-        socket.emit('healthUnitsPerState', rows) // Flatten rows array
+        socket.emit('healthUnitsPerState', rows)
       }).catch((err) => {
         log(err)
       })
@@ -70,11 +70,11 @@ module.exports = (dbPool, query) => {
     getCountryStatistics: (socket) => {
       Promise.all([
         dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getRegionUnitsDistribution)
+          let res = conn.query(query.getUnitsPerRegion)
           conn.release()
           return res
         }).then(([rows]) => {
-          socket.emit('getRegionUnitsDistribution', rows)
+          socket.emit('getUnitsPerRegion', rows)
         }),
         dbPool.getConnection().then((conn) => {
           let res = conn.query(query.getRegionScoreByCategory)
@@ -87,15 +87,15 @@ module.exports = (dbPool, query) => {
           let res = conn.query(query.getGovernmentControlledUnits)
           conn.release()
           return res
-        }).then(([rows]) => {
+        }).then(([[rows]]) => {
           socket.emit('getGovernmentControlledUnits', rows)
         }),
         dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getUnityCount)
+          let res = conn.query(query.getUnityQuantity)
           conn.release()
           return res
-        }).then(([rows]) => {
-          socket.emit('getUnityCount', rows)
+        }).then(([[rows]]) => {
+          socket.emit('getUnitQuantity', rows)
         })
       ]).catch((err) => {
         log(err)
