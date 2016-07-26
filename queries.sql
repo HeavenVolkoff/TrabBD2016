@@ -31,14 +31,21 @@ GROUP BY ufs.sigla;
 
 -- countHealthUnitPerType
 SELECT
-  ufs.sigla              AS acronym,
-  tipos_gestao.descricao AS type,
-  COUNT(tipos_gestao.id) AS quantity
-FROM tipos_gestao
-  INNER JOIN unidades_saude ON tipos_gestao.id = unidades_saude.tipo_gestao_id
-  INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
-  INNER JOIN ufs ON localizacoes.uf_id = ufs.id
-GROUP BY tipos_gestao.descricao, ufs.sigla;
+  ufs.sigla AS acronym,
+  GROUP_CONCAT(type SEPARATOR '$$')     AS type,
+  GROUP_CONCAT(quantity SEPARATOR '$$') AS quantity
+FROM ufs
+  INNER JOIN (
+               SELECT
+                 uf_id,
+                 tipos_gestao.descricao AS type,
+                 COUNT(tipos_gestao.id) AS quantity
+               FROM tipos_gestao
+                  INNER JOIN unidades_saude ON tipos_gestao.id = unidades_saude.tipo_gestao_id
+                  INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
+               GROUP BY uf_id, tipos_gestao.descricao
+) AS results ON ufs.id = results.uf_id
+GROUP BY ufs.sigla;
 
 -- getHealthUnitPosition
 SELECT
@@ -143,7 +150,7 @@ FROM (
   INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
   INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id;
 
--- StateUnitsScoreAvg
+-- stateUnitsScoreAvg
 SELECT
   sigla                                  AS acronyms,
   GROUP_CONCAT(nota SEPARATOR '$$')      AS score,

@@ -19,13 +19,22 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
  */
 module.exports = (dbPool, query) => {
   return {
+    connect: (socket) => {
+      dbPool.execute(query.getStates)
+        .then(function ([rows]) {
+          socket.emit('getStates', rows)
+        }).catch((err) => {
+        log(err)
+      })
+    },
+
     ready: (socket) => {
       dbPool.execute(query.healthUnitsPerState)
         .then(function ([rows]) {
           socket.emit('healthUnitsPerState', rows)
         }).catch((err) => {
-        log(err)
-      })
+          log(err)
+        })
     },
 
     countLocalizationsPerState: (socket, stateName) => {
@@ -33,26 +42,20 @@ module.exports = (dbPool, query) => {
         .then(([[row]]) => {
           socket.emit('countLocalizationsPerState_answer', row)
         }).catch((err) => {
-        log(err)
-      })
+          log(err)
+        })
     },
 
     getStatePopupData: (socket) => {
       Promise.all([
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.countHealthUnitPerType)
-          conn.release()
-          return res
-        }).then(([rows]) => {
-          socket.emit('countHealthUnitPerType', {rows: rows})
-        }),
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.StateUnitsScoreAvg)
-          conn.release()
-          return res
-        }).then(([rows]) => {
-          socket.emit('StateUnitsScoreAvg', {rows: rows})
-        })
+        dbPool.execute(query.countHealthUnitPerType)
+          .then(([rows]) => {
+            socket.emit('countHealthUnitPerType', rows)
+          }),
+        dbPool.execute(query.stateUnitsScoreAvg)
+          .then(([rows]) => {
+            socket.emit('stateUnitsScoreAvg', rows)
+          })
       ]).catch((err) => {
         log(err)
       })
@@ -63,8 +66,8 @@ module.exports = (dbPool, query) => {
         .then(([rows]) => {
           socket.emit('getHealthUnitPosition_answer', {uf: uf, rows: rows})
         }).catch((err) => {
-        log(err)
-      })
+          log(err)
+        })
     },
 
     getCountryStatistics: (socket) => Promise.all([

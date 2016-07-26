@@ -40,12 +40,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
     map: function (app, data) {
       var map, temp, layers, counter, listeners, mapElement, statesAcronyms,
         stateLayerHoverStyle, stateLayerDefaultStyle, stateLayerHoverStyleNegative,
-        htmlRequest
-
-      htmlRequest = Promise.props({
-        popUpTitle: Ajax.get('import/popupTitle.html', 'text'),
-        popUpItem: Ajax.get('import/popupItem.html', 'text')
-      })
+        popUpInfoRequest
 
       // Cache states acronyms from data
       statesAcronyms = data.brasilInfo.statesAcronyms
@@ -129,8 +124,8 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             click: listeners.stateLayerClick
           })
 
-          htmlRequest.then(function (popupHtml) {
-            layer.bindPopup(_.format(popupHtml.popUpTitle, [feature.properties.nome]), {className: 'popup'})
+          popUpInfoRequest.then(function (popUps) {
+            window.x = layer.bindPopup(popUps[feature.properties.sigla])
           })
         },
 
@@ -205,6 +200,28 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
 
       console.log('leaflet map creation ok')
 
+      popUpInfoRequest = Promise.props({
+        popUpTitle: Ajax.get('import/popupTitle.html', 'text'),
+        popUpItem: Ajax.get('import/popupItem.html', 'text')
+      }).then(function (popUpHTML) {
+        var popUp, stateAcronym
+        popUp = {}
+        for (stateAcronym in data.states) {
+          popUp[stateAcronym] = Leaflet
+            .popup({className: 'popup'})
+            .setContent(_.elementFromString(_.format(
+              popUpHTML.popUpTitle,
+              data.states[stateAcronym]
+            )))
+        }
+
+        popUp.html = popUpHTML
+
+        return popUp
+      }).catch(promiseErrorListener)
+
+      console.log('popUp html request ok')
+
       // Ajax requests of states geometries
       for (counter = 0; counter < statesAcronyms.length; counter++) {
         layers.stateGeoJson[statesAcronyms[counter]] =
@@ -239,12 +256,42 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         }
       )
 
-      app.socket.once('countHealthUnitPerType', function (data) {
-        console.log(data)
+      app.socket.once('countHealthUnitPerType', function (countHealthUnitPerType) {
+        popUpInfoRequest.then(function (popUps) {
+          var types, quantities, scoresByCategories, i, j, popUp
+
+          for (i = 0; i < countHealthUnitPerType.length; i++) {
+            popUp = popUps[countHealthUnitPerType[i].acronym].getContent()
+            quantities = ('' + countHealthUnitPerType[i].quantity).split('$$')
+            types = ('' + countHealthUnitPerType[i].type).split('$$')
+            scoresByCategories = new Array(types.length)
+
+            for (j = 0; j < types.length; j++) {
+              scoresByCategories[j] = {
+                quantity: quantities[j] >>> 0,
+                type: '' + types[j]
+              }
+            }
+
+            scoresByCategories.sort(function (left, right) {
+              left = left.category
+              right = right.category
+              return left === right ? 0 : left < right ? -1 : 1
+            })
+
+            for (j = 0; j < scoresByCategories.length; j++) {
+              popUp.appendChild(_.elementFromString(_.format(
+                popUps.html.popUpItem,
+                scoresByCategories[j].type,
+                scoresByCategories[j].quantity
+              )))
+            }
+          }
+        })
       })
 
-      app.socket.once('StateUnitsScoreAvg', function (data) {
-        console.log(data)
+      app.socket.once('stateUnitsScoreAvg', function (results) {
+        console.log(results)
       })
 
       // Cache data into UI.map
