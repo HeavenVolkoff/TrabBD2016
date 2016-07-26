@@ -16,7 +16,9 @@
 USE TrabalhoBD; # Ignored py parser, informational value only
 
 -- getStates
-SELECT ufs.sigla
+SELECT
+  ufs.sigla AS acronym,
+  ufs.nome  AS name
 FROM ufs;
 
 -- healthUnitsPerState
@@ -29,22 +31,14 @@ GROUP BY ufs.sigla;
 
 -- countHealthUnitPerType
 SELECT
+  ufs.sigla              AS acronym,
   tipos_gestao.descricao AS type,
   COUNT(tipos_gestao.id) AS quantity
 FROM tipos_gestao
-  INNER JOIN (
-               SELECT unidades_saude.tipo_gestao_id
-               FROM unidades_saude
-                 INNER JOIN (
-                              SELECT
-                                localizacoes.id,
-                                localizacoes.uf_id
-                              FROM localizacoes
-                                INNER JOIN ufs ON ufs.id = localizacoes.uf_id
-                              WHERE ufs.sigla = ?
-                            ) AS loc_uf ON loc_uf.id = unidades_saude.localizacao_id
-             ) AS tipo_gestao_estado ON tipo_gestao_estado.tipo_gestao_id = tipos_gestao.id
-GROUP BY tipos_gestao.descricao;
+  INNER JOIN unidades_saude ON tipos_gestao.id = unidades_saude.tipo_gestao_id
+  INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
+  INNER JOIN ufs ON localizacoes.uf_id = ufs.id
+GROUP BY tipos_gestao.descricao, ufs.sigla;
 
 -- getHealthUnitPosition
 SELECT
@@ -71,28 +65,29 @@ GROUP BY regioes.nome;
 
 -- getRegionScoreByCategory
 SELECT
-  regioes.nome                             AS regionName,
-  GROUP_CONCAT(categorias_avaliacoes.nome) AS categories,
-  GROUP_CONCAT(notasPorCatId.notas)        AS score
+  regioes.nome                                            AS regionName,
+  GROUP_CONCAT(notasPorCatId.notas SEPARATOR '$$')        AS score,
+  GROUP_CONCAT(categorias_avaliacoes.nome SEPARATOR '$$') AS categories
 FROM (
        SELECT
-         localizacoes.regiao_id          AS regiao_id,
-         nota_unidade_saude.categoria_id AS categoria_id,
-         (AVG(notas.valor) / 3) * 10     AS notas
+         regiao_id,
+         categoria_id,
+         (AVG(valor) / 3) * 10 AS notas
        FROM unidades_saude
          INNER JOIN localizacoes ON localizacoes.id = unidades_saude.localizacao_id
          INNER JOIN nota_unidade_saude ON unidades_saude.id = nota_unidade_saude.unidade_saude_id
          INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
        GROUP BY localizacoes.regiao_id, nota_unidade_saude.categoria_id
+       HAVING regiao_id IS NOT NULL
      ) AS notasPorCatId
-  INNER JOIN regioes ON notasPorCatId.regiao_id = regioes.id
-  INNER JOIN categorias_avaliacoes ON notasPorCatId.categoria_id = categorias_avaliacoes.id
+  INNER JOIN regioes ON regiao_id = regioes.id
+  INNER JOIN categorias_avaliacoes ON categoria_id = categorias_avaliacoes.id
 GROUP BY regionName;
 
 -- getGovernmentControlledUnits
 SELECT
-  governo.count AS quantity,
-  total.count   AS total
+  total.count   AS total,
+  governo.count AS quantity
 FROM (
        SELECT COUNT(unidades_saude.id) AS count
        FROM unidades_saude
@@ -150,19 +145,23 @@ FROM (
 
 -- StateUnitsScoreAvg
 SELECT
-  categorias_avaliacoes.nome  AS categoria,
-  (AVG(notas.valor) / 3) * 10 AS nota
-FROM (
-       SELECT unidades_saude.id AS id
-       FROM unidades_saude
-         INNER JOIN localizacoes ON unidades_saude.localizacao_id = localizacoes.id
-         INNER JOIN ufs ON localizacoes.uf_id = ufs.id
-       WHERE ufs.sigla = ?
-     ) AS unidades
-  INNER JOIN nota_unidade_saude ON nota_unidade_saude.unidade_saude_id = unidades.id
-  INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
-  INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
-GROUP BY categorias_avaliacoes.nome;
+  sigla                                  AS acronyms,
+  GROUP_CONCAT(nota SEPARATOR '$$')      AS score,
+  GROUP_CONCAT(categoria SEPARATOR '$$') AS category
+FROM ufs
+  INNER JOIN (
+    SELECT
+      localizacoes.uf_id         AS uf_id,
+      AVG(notas.valor) / 3 * 10  AS nota,
+      categorias_avaliacoes.nome AS categoria
+    FROM localizacoes
+      INNER JOIN unidades_saude ON unidades_saude.localizacao_id = localizacoes.id
+      INNER JOIN nota_unidade_saude ON nota_unidade_saude.unidade_saude_id = unidades_saude.id
+      INNER JOIN categorias_avaliacoes ON nota_unidade_saude.categoria_id = categorias_avaliacoes.id
+      INNER JOIN notas ON nota_unidade_saude.nota_id = notas.id
+    GROUP BY categoria, uf_id
+    ) AS result ON ufs.id = result.uf_id
+GROUP BY acronyms;
 
 -- StateUnitsTypeDistribution
 SELECT

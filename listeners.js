@@ -20,86 +20,60 @@ const log = debug(`${path.basename(file.dir)}:${file.name}`)
 module.exports = (dbPool, query) => {
   return {
     ready: (socket) => {
-      dbPool.getConnection().then((conn) => {
-        let rows = conn.query(query.healthUnitsPerState)
-        conn.release()
-        return rows
-      }).then(function ([rows]) {
-        socket.emit('healthUnitsPerState', rows)
-      }).catch((err) => {
-        log(err)
-      })
+      dbPool.execute(query.healthUnitsPerState)
+        .then(function ([rows]) {
+          socket.emit('healthUnitsPerState', rows)
+        }).catch((err) => {
+          log(err)
+        })
     },
 
     countLocalizationsPerState: (socket, stateName) => {
-      dbPool.getConnection().then((conn) => {
-        let res = conn.query(query.countLocalizationsPerState, [stateName])
-        conn.release()
-        return res
-      }).then(([[row]]) => {
-        socket.emit('countLocalizationsPerState_answer', row)
-      }).catch((err) => {
-        log(err)
-      })
+      dbPool.execute(query.countLocalizationsPerState, [stateName])
+        .then(([[row]]) => {
+          socket.emit('countLocalizationsPerState_answer', row)
+        }).catch((err) => {
+          log(err)
+        })
     },
 
     countHealthUnitPerType: (socket, uf) => {
-      dbPool.getConnection().then((conn) => {
-        let res = conn.query(query.countHealthUnitPerType, [uf])
-        conn.release()
-        return res
-      }).then(([rows]) => {
-        socket.emit('countHealthUnitPerType_answer', {uf: uf, rows: rows})
-      }).catch((err) => {
-        log(err)
-      })
+      dbPool.execute(query.countHealthUnitPerType, [uf])
+        .then(([rows]) => {
+          socket.emit('countHealthUnitPerType_answer', {uf: uf, rows: rows})
+        }).catch((err) => {
+          log(err)
+        })
     },
 
     getHealthUnitPosition: (socket, uf) => {
-      dbPool.getConnection().then((conn) => {
-        let res = conn.query(query.getHealthUnitPosition, [uf])
-        conn.release()
-        return res
-      }).then(([rows]) => {
-        socket.emit('getHealthUnitPosition_answer', {uf: uf, rows: rows})
-      }).catch((err) => {
-        log(err)
-      })
+      dbPool.execute(query.getHealthUnitPosition, [uf])
+        .then(([rows]) => {
+          socket.emit('getHealthUnitPosition_answer', {uf: uf, rows: rows})
+        }).catch((err) => {
+          log(err)
+        })
     },
 
-    getCountryStatistics: (socket) => {
-      Promise.all([
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getUnitsPerRegion)
-          conn.release()
-          return res
-        }).then(([rows]) => {
+    getCountryStatistics: (socket) => Promise.all([
+      dbPool.execute(query.getUnitsPerRegion)
+        .then(([rows]) => {
           socket.emit('getUnitsPerRegion', rows)
         }),
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getRegionScoreByCategory)
-          conn.release()
-          return res
-        }).then(([rows]) => {
+      dbPool.execute(query.getRegionScoreByCategory)
+        .then(([rows]) => {
           socket.emit('getRegionScoreByCategory', rows)
         }),
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getGovernmentControlledUnits)
-          conn.release()
-          return res
-        }).then(([[rows]]) => {
+      dbPool.execute(query.getGovernmentControlledUnits)
+        .then(([[rows]]) => {
           socket.emit('getGovernmentControlledUnits', rows)
         }),
-        dbPool.getConnection().then((conn) => {
-          let res = conn.query(query.getUnityQuantity)
-          conn.release()
-          return res
-        }).then(([[rows]]) => {
+      dbPool.execute(query.getUnityQuantity)
+        .then(([[rows]]) => {
           socket.emit('getUnitQuantity', rows)
         })
-      ]).catch((err) => {
-        log(err)
-      })
-    }
+    ]).catch((err) => {
+      log(err)
+    })
   }
 }

@@ -277,8 +277,8 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           ))
 
           for (i = 0; i < regionScoreByCategory.length; i++) {
-            scores = ('' + regionScoreByCategory[i].score).split(',')
-            categories = ('' + regionScoreByCategory[i].categories).split(',')
+            scores = ('' + regionScoreByCategory[i].score).split('$$')
+            categories = ('' + regionScoreByCategory[i].categories).split('$$')
             scoresByCategories = new Array(categories.length)
 
             for (j = 0, average = 0; j < categories.length; j++) {
