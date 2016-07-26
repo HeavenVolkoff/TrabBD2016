@@ -129,7 +129,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             click: listeners.stateLayerClick
           })
 
-          htmlRequest.then(function(popupHtml){
+          htmlRequest.then(function (popupHtml) {
             layer.bindPopup(_.format(popupHtml.popUpTitle, [feature.properties.nome]), {className: 'popup'})
           })
         },
@@ -239,13 +239,13 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         }
       )
 
-      app.socket.once('countHealthUnitPerType', function(data){
+      app.socket.once('countHealthUnitPerType', function (data) {
         console.log(data)
-      });
+      })
 
-      app.socket.once('StateUnitsScoreAvg', function(data){
+      app.socket.once('StateUnitsScoreAvg', function (data) {
         console.log(data)
-      });
+      })
 
       // Cache data into UI.map
       return {
@@ -418,7 +418,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         })
       })
 
-      app.socket.emit('getCountryStatistics');
+      app.socket.emit('getCountryStatistics')
       return {}
     }
   }

@@ -24,8 +24,8 @@ module.exports = (dbPool, query) => {
         .then(function ([rows]) {
           socket.emit('healthUnitsPerState', rows)
         }).catch((err) => {
-          log(err)
-        })
+        log(err)
+      })
     },
 
     countLocalizationsPerState: (socket, stateName) => {
@@ -33,8 +33,8 @@ module.exports = (dbPool, query) => {
         .then(([[row]]) => {
           socket.emit('countLocalizationsPerState_answer', row)
         }).catch((err) => {
-          log(err)
-        })
+        log(err)
+      })
     },
 
     getStatePopupData: (socket) => {
@@ -55,7 +55,7 @@ module.exports = (dbPool, query) => {
         })
       ]).catch((err) => {
         log(err)
-      });
+      })
     },
 
     getHealthUnitPosition: (socket, uf) => {
@@ -63,8 +63,8 @@ module.exports = (dbPool, query) => {
         .then(([rows]) => {
           socket.emit('getHealthUnitPosition_answer', {uf: uf, rows: rows})
         }).catch((err) => {
-          log(err)
-        })
+        log(err)
+      })
     },
 
     getCountryStatistics: (socket) => Promise.all([
