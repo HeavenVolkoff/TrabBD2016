@@ -84,7 +84,9 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * @param event {MouseEvent}
          */
         stateLayerMouseOut: function resetHighlight (event) {
-          event.target.setStyle(stateLayerHoverStyleNegative)
+          var layer = event.target
+          layer.setStyle(stateLayerHoverStyleNegative)
+          layer.closePopup();
         },
 
         /**
@@ -98,6 +100,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           if (!(Leaflet.Browser.ie || Leaflet.Browser.opera)) {
             layer.bringToFront()
           }
+          layer.openPopup();
         },
 
         /**
@@ -202,6 +205,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
 
       popUpInfoRequest = Promise.props({
         popUpTitle: Ajax.get('import/popupTitle.html', 'text'),
+        popUpItemTitle: Ajax.get('import/popupItemTitle.html', 'text'),
         popUpItem: Ajax.get('import/popupItem.html', 'text')
       }).then(function (popUpHTML) {
         var popUp, stateAcronym
@@ -258,40 +262,82 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
 
       app.socket.once('countHealthUnitPerType', function (countHealthUnitPerType) {
         popUpInfoRequest.then(function (popUps) {
-          var types, quantities, scoresByCategories, i, j, popUp
+          var types, quantities, quantitiesByCategories, i, j, popUp
 
           for (i = 0; i < countHealthUnitPerType.length; i++) {
             popUp = popUps[countHealthUnitPerType[i].acronym].getContent()
+            popUp.appendChild(_.elementFromString(_.format(
+              popUps.html.popUpItemTitle,
+              'UBS Por Tipo de Gestão:',
+              ''
+            )))
             quantities = ('' + countHealthUnitPerType[i].quantity).split('$$')
             types = ('' + countHealthUnitPerType[i].type).split('$$')
-            scoresByCategories = new Array(types.length)
+            quantitiesByCategories = new Array(types.length)
 
             for (j = 0; j < types.length; j++) {
-              scoresByCategories[j] = {
+              quantitiesByCategories[j] = {
                 quantity: quantities[j] >>> 0,
                 type: '' + types[j]
               }
             }
 
-            scoresByCategories.sort(function (left, right) {
+            quantitiesByCategories.sort(function (left, right) {
               left = left.category
               right = right.category
               return left === right ? 0 : left < right ? -1 : 1
             })
 
-            for (j = 0; j < scoresByCategories.length; j++) {
+            for (j = 0; j < quantitiesByCategories.length; j++) {
               popUp.appendChild(_.elementFromString(_.format(
                 popUps.html.popUpItem,
-                scoresByCategories[j].type,
-                scoresByCategories[j].quantity
+                quantitiesByCategories[j].type,
+                quantitiesByCategories[j].quantity
               )))
             }
           }
         })
       })
 
-      app.socket.once('stateUnitsScoreAvg', function (results) {
-        console.log(results)
+      app.socket.once('stateUnitsScoreAvg', function (stateUnitsScoreAvg) {
+        popUpInfoRequest.then(function (popUps) {
+          var categories, scores, average, scoresByCategories, i, j, popUp
+          for (i = 0; i < stateUnitsScoreAvg.length; i++) {
+            popUp = popUps[stateUnitsScoreAvg[i].acronyms].getContent()
+            scores = ('' + stateUnitsScoreAvg[i].score).split('$$')
+            categories = ('' + stateUnitsScoreAvg[i].category).split('$$')
+            scoresByCategories = new Array(categories.length)
+
+            for (j = 0, average = 0; j < categories.length; j++) {
+              scoresByCategories[j] = {
+                score: +(+scores[j]).toFixed(2),
+                category: '' + categories[j]
+              }
+
+              average += +scores[j]
+            }
+
+            scoresByCategories.sort(function (left, right) {
+              left = left.categories
+              right = right.categories
+              return left === right ? 0 : left < right ? -1 : 1
+            })
+
+            popUp.appendChild(_.elementFromString(_.format(
+              popUps.html.popUpItemTitle,
+              'Avaliação Media das UBS:',
+              (average / scores.length).toFixed(2) + '/ 10'
+            )))
+
+            for (j = 0; j < scoresByCategories.length; j++) {
+              popUp.appendChild(_.elementFromString(_.format(
+                popUps.html.popUpItem,
+                scoresByCategories[j].category,
+                scoresByCategories[j].score
+              )))
+            }
+          }
+        })
       })
 
       // Cache data into UI.map
