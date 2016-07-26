@@ -264,7 +264,21 @@ input{
     font-weight: bold;
     font-size: 1.2em;
     margin-bottom: 0;
-    padding-bottom: 10px;
+    padding-bottom: 2px;
+    width: 200px;
+}
+
+.popup .item-popup-container{
+    width: 200px;
+}
+
+.popup .item-popup-title-gray{
+    display: inline-block;
+    color: #777;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 8px;
+    margin-bottom: 2px;
 }
 
 .popup .item-popup-title{
@@ -272,13 +286,23 @@ input{
     color: #333;
     font-size: 12px;
     font-weight: bold;
-    margin-top: 5px;
+    margin-top: 0;
+    margin-bottom: 2px;
 }
 
 .popup .item-popup-description{
     display: inline-block;
     color: #333;
     font-size: 12px;
-    margin-top: 5px;
-    margin-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 2px;
 }
+
+.popup .item-popup-description-gray{
+    display: inline-block;
+    color: #777;
+    font-size: 12px;
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
