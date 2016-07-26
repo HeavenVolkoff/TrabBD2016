@@ -23,10 +23,6 @@ module.exports = function createSocketIO (server, listeners) {
 
   io.on('connection', (socket) => {
     for (let listener of listenerArray) {
-      if (listener === 'connect') {
-        listeners[listener](socket)
-        continue
-      }
       socket.on(listener, listeners[listener].bind(null, socket))
     }
   })
