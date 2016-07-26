@@ -49,9 +49,10 @@ GROUP BY ufs.sigla;
 
 -- getHealthUnitPosition
 SELECT
-  tipos_unidade.tipo     AS tipo,
-  localizacoes.latitude  AS latitude,
-  localizacoes.longitude AS longitude
+  unidades_saude.id      AS id,
+  tipos_unidade.tipo     AS type,
+  localizacoes.latitude  AS lat,
+  localizacoes.longitude AS lng
 FROM localizacoes
   INNER JOIN (
                SELECT ufs.id

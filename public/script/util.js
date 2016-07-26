@@ -56,7 +56,7 @@ window.define(function () {
         boundArgs = new Array(boundLength)
 
         for (i = 0; i < boundLength; i++) {
-          boundArgs[i] = arguments[i + 2]
+          boundArgs[i] = arguments[i + 1]
         }
 
         return function () {

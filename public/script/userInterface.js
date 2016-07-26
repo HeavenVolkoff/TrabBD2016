@@ -40,7 +40,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
     map: function (app, data) {
       var map, temp, layers, counter, listeners, mapElement, statesAcronyms,
         stateLayerHoverStyle, stateLayerDefaultStyle, stateLayerHoverStyleNegative,
-        popUpInfoRequest
+        popUpInfoRequest, focus, focusEnum
 
       // Cache states acronyms from data
       statesAcronyms = data.brasilInfo.statesAcronyms
@@ -57,6 +57,9 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         }
       }
 
+      focusEnum = {COUNTRY: 'country'}
+      focus = focusEnum.COUNTRY
+
       // === Event functions listeners ===
       listeners = {
         /**
@@ -64,17 +67,40 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * Change view to clicked state and request state health unit data from server
          * @param event {MouseEvent}
          */
-        stateLayerClick: function zoomToFeature (event) {
+        stateLayerClick: function zoomToFeature (event, layer) {
+          layer = layer || event.target
+
+          if (focus !== focusEnum.COUNTRY && focus !== layer.feature.properties.sigla) {
+            focus = focusEnum.COUNTRY
+            map.options.minZoom = 0
+            map.options.maxZoom = 18
+            map.setMaxBounds(null)
+
+            map.once('moveend zoomend', function () {
+              map.options.minZoom = data.brasilInfo.zoom.min
+              map.options.maxZoom = data.brasilInfo.zoom.max
+              map.setMaxBounds(map.getBounds())
+            })
+
+            map.setView(data.brasilInfo.center, data.brasilInfo.zoom.min)
+            return
+          }
+
+          focus = layer.feature.properties.sigla
+          app.socket.emit('getHealthUnitPosition', focus)
+
           map.options.minZoom = 0
           map.options.maxZoom = 18
           map.setMaxBounds(null)
 
+          layer.popUp.removeFrom(map)
+
           map.once('moveend zoomend', function () {
-            map.setMaxBounds(event.target.getBounds())
+            map.setMaxBounds(layer.getBounds())
             map.options.minZoom = map.getZoom()
           })
 
-          map.fitBounds(event.target.getBounds())
+          map.fitBounds(layer.getBounds())
         // TODO: request state health unit markers
         },
 
@@ -83,10 +109,10 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * Reset state layer hover style (set generated undo-style)
          * @param event {MouseEvent}
          */
-        stateLayerMouseOut: function resetHighlight (event) {
-          var layer = event.target
+        stateLayerMouseOut: function resetHighlight (event, layer) {
+          layer = layer || event.target
           layer.setStyle(stateLayerHoverStyleNegative)
-          layer.closePopup();
+          layer.popUp.removeFrom(map)
         },
 
         /**
@@ -94,13 +120,17 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * Change state layer to hover style
          * @param event {MouseEvent}
          */
-        stateLayerMouseOver: function highlightFeature (event) {
-          var layer = event.target
+        stateLayerMouseOver: function highlightFeature (event, layer) {
+          layer = layer || event.target
+          if (focus !== focusEnum.COUNTRY || layer.popUp.isOpen()) return
+
           layer.setStyle(stateLayerHoverStyle)
+
           if (!(Leaflet.Browser.ie || Leaflet.Browser.opera)) {
             layer.bringToFront()
           }
-          layer.openPopup();
+
+          layer.popUp.openOn(map)
         },
 
         /**
@@ -128,7 +158,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           })
 
           popUpInfoRequest.then(function (popUps) {
-            window.x = layer.bindPopup(popUps[feature.properties.sigla])
+            layer.popUp = popUps[feature.properties.sigla].setLatLng(layer.getCenter())
           })
         },
 
@@ -141,7 +171,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * @param iconSizeCssClass {Number}
          */
         stateMarkerDataListener: function (stateName, healthUnitQuantity, iconSizeCssClass) {
-          var style, stateGeometry
+          var style, stateGeometry, marker
           stateGeometry = layers.stateGeoJson[stateName]
 
           if (stateGeometry instanceof Promise) {
@@ -155,7 +185,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
           style.fillColor = data.leaflet.layers.style.colorsPerState[iconSizeCssClass]
           stateGeometry.setStyle(style)
 
-          layers.stateMarkers.addLayer(Leaflet.marker(
+          layers.stateMarkers.addLayer(marker = Leaflet.marker(
             stateName === 'PE' ? data.brasilInfo.positionFix['PE'] : stateGeometry.getBounds().getCenter(),
             {
               icon: Leaflet.divIcon({
@@ -167,6 +197,12 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
               })
             })
           )
+
+          marker.on({
+            // mouseover: _.bind(listeners.stateLayerMouseOver, null, stateGeometry), TODO: FIX
+            // mouseout: _.bind(listeners.stateLayerMouseOut, null, stateGeometry), TODO: FIX
+            click: _.bind(listeners.stateLayerClick, null, stateGeometry)
+          })
         }
       }
 
@@ -338,6 +374,29 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             }
           }
         })
+      })
+
+      app.socket.on('getHealthUnitPosition_answer', function (results) {
+        var healthUnitPositions, i, healthUnit, marker
+        if (focus !== results.uf) return
+        healthUnitPositions = results.rows
+        console.log('YEY')
+
+        for (i = 0; i < healthUnitPositions.length; i++) {
+          healthUnit = healthUnitPositions[i]
+
+          layers.stateMarkers.addLayer(marker = Leaflet.marker(
+            healthUnit,
+            {
+              icon: Leaflet.divIcon({
+                className: 'mapMarker',
+                html: _.format(data.leaflet.layers.makers.healthUnitPerStateHTML,
+                  '-', ''
+                )
+              })
+            })
+          )
+        }
       })
 
       // Cache data into UI.map
