@@ -24,8 +24,8 @@ module.exports = (dbPool, query) => {
         .then(function ([rows]) {
           socket.emit('getStates', rows)
         }).catch((err) => {
-        log(err)
-      })
+          log(err)
+        })
     },
 
     ready: (socket) => {

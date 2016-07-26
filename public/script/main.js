@@ -32,7 +32,7 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
     ui: null
   }
 
-  getStates = new Promise(function(resolve){
+  getStates = new Promise(function (resolve) {
     app.socket.once('getStates', function (states) {
       var obj, i
       obj = {}
@@ -65,9 +65,9 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
     // Inform server that we are ready to receive database data
     app.socket.emit('ready')
   })
-  .catch(function (error) {
-    console.error(error.message)
-  })
+    .catch(function (error) {
+      console.error(error.message)
+    })
 
   return app
 })
