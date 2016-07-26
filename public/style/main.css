@@ -113,7 +113,6 @@ html, body{
 .item-sidebar-info-with-hover{
     overflow: hidden;
     max-height: 20px;
-    transition: max-height 1s ease-in-out;
     transition-property: max-height;
     transition-duration: 0.5s;
     transition-delay: 0s;
@@ -257,4 +256,29 @@ input{
 }
 .healthUnitsPerStateMarker._3:after {
     font-size: 2.5em;
+}
+
+.popup .popup-title{
+    position: relative;
+    color: #777;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 0;
+    padding-bottom: 10px;
+}
+
+.popup .item-popup-title{
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.popup .item-popup-description{
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+    margin-top: 5px;
+    margin-bottom: 0;
 }

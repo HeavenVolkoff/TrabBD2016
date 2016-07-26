@@ -15,7 +15,7 @@ window.require.config({
 
 window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
   'use strict'
-  var elementName, app
+  var elementName, app, getStates
 
   /**
    * App object
@@ -32,25 +32,42 @@ window.define(['userInterface', 'socket.io', 'Ajax'], function (UI, IO, Ajax) {
     ui: null
   }
 
-  Ajax.get('data/data.json', 'json')
-    .then(function (data) {
-      app.config = data.config
-      app.ready = true
-      app.ui = UI
+  getStates = new Promise(function(resolve){
+    app.socket.once('getStates', function (states) {
+      var obj, i
+      obj = {}
 
-      // Exec each UI element set-up function
-      for (elementName in UI) {
-        if (UI.hasOwnProperty(elementName) && typeof UI[elementName] === 'function') {
-          UI[elementName] = UI[elementName](app, data)
-        }
+      for (i = 0; i < states.length; i++) {
+        obj[states[i].uf] = states[i].nome
       }
 
-      // Inform server that we are ready to receive database data
-      app.socket.emit('ready')
+      resolve(obj)
     })
-    .catch(function (error) {
-      console.error(error.message)
-    })
+  })
+
+  Promise.props({
+    data: Ajax.get('data/data.json', 'json'),
+    states: getStates
+  }).then(function (result) {
+    app.config = result.data.config
+    app.ready = true
+    app.ui = UI
+
+    result.data.states = result.states
+
+    // Exec each UI element set-up function
+    for (elementName in UI) {
+      if (UI.hasOwnProperty(elementName) && typeof UI[elementName] === 'function') {
+        UI[elementName] = UI[elementName](app, result.data)
+      }
+    }
+
+    // Inform server that we are ready to receive database data
+    app.socket.emit('ready')
+  })
+  .catch(function (error) {
+    console.error(error.message)
+  })
 
   return app
 })

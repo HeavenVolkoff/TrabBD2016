@@ -37,13 +37,25 @@ module.exports = (dbPool, query) => {
         })
     },
 
-    countHealthUnitPerType: (socket, uf) => {
-      dbPool.execute(query.countHealthUnitPerType, [uf])
-        .then(([rows]) => {
-          socket.emit('countHealthUnitPerType_answer', {uf: uf, rows: rows})
-        }).catch((err) => {
-          log(err)
+    getStatePopupData: (socket) => {
+      Promise.all([
+        dbPool.getConnection().then((conn) => {
+          let res = conn.query(query.countHealthUnitPerType)
+          conn.release()
+          return res
+        }).then(([rows]) => {
+          socket.emit('countHealthUnitPerType', {rows: rows})
+        }),
+        dbPool.getConnection().then((conn) => {
+          let res = conn.query(query.StateUnitsScoreAvg)
+          conn.release()
+          return res
+        }).then(([rows]) => {
+          socket.emit('StateUnitsScoreAvg', {rows: rows})
         })
+      ]).catch((err) => {
+        log(err)
+      });
     },
 
     getHealthUnitPosition: (socket, uf) => {

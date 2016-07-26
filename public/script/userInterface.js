@@ -39,7 +39,13 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
      */
     map: function (app, data) {
       var map, temp, layers, counter, listeners, mapElement, statesAcronyms,
-        stateLayerHoverStyle, stateLayerDefaultStyle, stateLayerHoverStyleNegative
+        stateLayerHoverStyle, stateLayerDefaultStyle, stateLayerHoverStyleNegative,
+        htmlRequest
+
+      htmlRequest = Promise.props({
+        popUpTitle: Ajax.get('import/popupTitle.html', 'text'),
+        popUpItem: Ajax.get('import/popupItem.html', 'text')
+      })
 
       // Cache states acronyms from data
       statesAcronyms = data.brasilInfo.statesAcronyms
@@ -122,6 +128,10 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
             mouseout: listeners.stateLayerMouseOut,
             click: listeners.stateLayerClick
           })
+
+          htmlRequest.then(function(popupHtml){
+            layer.bindPopup(_.format(popupHtml.popUpTitle, [feature.properties.nome]), {className: 'popup'})
+          })
         },
 
         /**
@@ -129,7 +139,6 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
          * Generate marker and add it to stateMarker layerGroup
          *
          * @param stateName {String}
-         * @param stateGeometry {Leaflet.ILayer}
          * @param healthUnitQuantity {Number}
          * @param iconSizeCssClass {Number}
          */
@@ -226,8 +235,17 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
               iconSizeCssClass
             )
           }
+          app.socket.emit('getStatePopupData')
         }
       )
+
+      app.socket.once('countHealthUnitPerType', function(data){
+        console.log(data)
+      });
+
+      app.socket.once('StateUnitsScoreAvg', function(data){
+        console.log(data)
+      });
 
       // Cache data into UI.map
       return {
@@ -400,8 +418,7 @@ window.define(['util', 'Ajax', 'Leaflet'], function (_, Ajax, Leaflet) {
         })
       })
 
-      app.socket.emit('getCountryStatistics')
-
+      app.socket.emit('getCountryStatistics');
       return {}
     }
   }
